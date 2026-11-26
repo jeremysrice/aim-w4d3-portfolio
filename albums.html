@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rolling Stones studio albums with key tracks, descriptions and links, plus a song-guessing game.">
+  <title>Albums · Stones Fan Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="albums">
+
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="brand" href="index.html">Stones <span>Fan Hub</span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="albums.html" aria-current="page">Albums</a></li>
+        <li><a href="toursandconcerts.html">Tours &amp; Concerts</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <h1>The <span>Albums</span></h1>
+        <p>The UK studio albums from 1964 to today, each with its key tracks, a short description and links for further reading and listening. Then see how many songs you can name from a single clue.</p>
+      </div>
+    </section>
+
+    <section class="section" id="game">
+      <div class="container">
+        <h2 class="section-title">Name That <span>Song</span></h2>
+        <p class="section-lead">You get a one-line clue and four choices. After you answer, the song plays in an official embedded YouTube player, starting at a short clip.</p>
+
+        <div class="card game-card" aria-live="polite">
+          <div class="quiz-meta">
+            <span>Round <strong id="game-round">1</strong> / <span id="game-total">10</span></span>
+            <span>Score <strong id="game-score">0</strong></span>
+            <span>Streak <strong id="game-streak">0</strong></span>
+          </div>
+          <p class="clue" id="game-clue">Press start to get your first clue.</p>
+          <div class="options game-options" id="game-options"></div>
+          <p class="quiz-feedback" id="game-feedback"></p>
+          <div class="player-wrap" id="game-player" hidden></div>
+          <div class="game-actions">
+            <button class="btn" type="button" id="game-start">Start game</button>
+            <button class="btn" type="button" id="game-next" hidden>Next song</button>
+          </div>
+          <p class="form-note" style="margin-top:1rem">Best score: <strong id="game-best">0</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <h2 class="section-title">Studio <span>Discography</span></h2>
+        <div class="album-toolbar">
+          <div>
+            <label for="album-search">Search albums or songs</label>
+            <input type="text" id="album-search" placeholder="Try &quot;Wild Horses&quot; or 1972">
+          </div>
+          <div>
+            <label for="album-era">Era</label>
+            <select id="album-era">
+              <option value="all">All eras</option>
+              <option value="1960s">1960s</option>
+              <option value="1970s">1970s</option>
+              <option value="1980s">1980s</option>
+              <option value="1990s">1990s</option>
+              <option value="2000s">2000s and later</option>
+            </select>
+          </div>
+        </div>
+        <p class="form-note" id="album-count" aria-live="polite"></p>
+        <div class="album-grid" id="album-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Stones Fan Hub is an unofficial, non-commercial fan site. It is not affiliated with The Rolling Stones or their labels.</p>
+      <p>Music plays through the official YouTube players published by the rights holders.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

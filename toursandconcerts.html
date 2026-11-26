@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rolling Stones tours and landmark concerts, a fan memories wall and a moderated fan gallery.">
+  <title>Tours &amp; Concerts · Stones Fan Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="tours">
+
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="brand" href="index.html">Stones <span>Fan Hub</span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="albums.html">Albums</a></li>
+        <li><a href="toursandconcerts.html" aria-current="page">Tours &amp; Concerts</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <h1>Tours &amp; <span>Concerts</span></h1>
+        <p>Every major Stones tour from the 1964 US debut to the Hackney Diamonds run, plus the one-off shows that made history. The band has played more than 2,000 concerts, so for a night-by-night setlist archive see the <a href="https://en.wikipedia.org/wiki/List_of_the_Rolling_Stones_concert_tours" target="_blank" rel="noopener">full tour list</a>.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="tabs" role="tablist" aria-label="Concert listings">
+          <button class="tab" role="tab" aria-selected="true" aria-controls="panel-tours" id="tab-tours">Tours</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-landmarks" id="tab-landmarks">Landmark shows</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-upcoming" id="tab-upcoming">Upcoming dates</button>
+        </div>
+
+        <div role="tabpanel" id="panel-tours" aria-labelledby="tab-tours">
+          <div class="tour-table-wrap">
+            <table class="tour-table">
+              <thead><tr><th>Years</th><th>Tour</th><th>Regions</th><th>Notes</th></tr></thead>
+              <tbody id="tour-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div role="tabpanel" id="panel-landmarks" aria-labelledby="tab-landmarks" hidden>
+          <div class="tour-table-wrap">
+            <table class="tour-table">
+              <thead><tr><th>Date</th><th>Venue</th><th>Why it matters</th></tr></thead>
+              <tbody id="landmark-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div role="tabpanel" id="panel-upcoming" aria-labelledby="tab-upcoming" hidden>
+          <div id="upcoming-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="memories">
+      <div class="container">
+        <h2 class="section-title">First Show <span>Memories Wall</span></h2>
+        <p class="section-lead">Where did you first see the Stones? Add your story to the timeline and see how it lines up with other fans' first shows.</p>
+
+        <div class="two-col">
+          <form class="card form-grid" id="memory-form" novalidate>
+            <div>
+              <label for="mem-name">Your name</label>
+              <input type="text" id="mem-name" maxlength="40" required>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="mem-year">Year</label>
+                <input type="number" id="mem-year" min="1962" required placeholder="1981">
+              </div>
+              <div>
+                <label for="mem-city">City / venue</label>
+                <input type="text" id="mem-city" maxlength="60" required placeholder="Philadelphia, JFK Stadium">
+              </div>
+            </div>
+            <div>
+              <label for="mem-tour">Tour (optional)</label>
+              <select id="mem-tour"><option value="">Not sure / other</option></select>
+            </div>
+            <div>
+              <label for="mem-story">Your story</label>
+              <textarea id="mem-story" maxlength="800" required placeholder="The lights went down, then that opening riff..."></textarea>
+            </div>
+            <p class="form-status" id="mem-status"></p>
+            <button class="btn" type="submit">Pin my memory</button>
+          </form>
+
+          <div>
+            <div class="decade-filter">
+              <label for="mem-filter">Show decade</label>
+              <select id="mem-filter"><option value="all">All decades</option></select>
+            </div>
+            <div class="timeline" id="memory-timeline"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gallery">
+      <div class="container">
+        <h2 class="section-title">Fan <span>Gallery</span></h2>
+        <p class="section-lead">Share your concert photos, fan art and Stones tattoos. A moderator reviews each submission before it appears in the gallery. Please only upload images you made or took yourself.</p>
+
+        <div class="two-col">
+          <form class="card form-grid" id="gallery-form" novalidate>
+            <div>
+              <label for="gal-name">Your name</label>
+              <input type="text" id="gal-name" maxlength="40" required>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="gal-cat">Category</label>
+                <select id="gal-cat" required>
+                  <option value="Concert photo">Concert photo</option>
+                  <option value="Fan art">Fan art</option>
+                  <option value="Tattoo">Tattoo</option>
+                </select>
+              </div>
+              <div>
+                <label for="gal-file">Image</label>
+                <input type="file" id="gal-file" accept="image/*" required>
+              </div>
+            </div>
+            <div>
+              <label for="gal-caption">Caption</label>
+              <input type="text" id="gal-caption" maxlength="120" placeholder="Hyde Park, 2013. Front row!">
+            </div>
+            <p class="form-status" id="gal-status"></p>
+            <button class="btn" type="submit">Submit for review</button>
+            <p class="form-note">Images are resized before saving. Submissions are kept in this browser.</p>
+          </form>
+
+          <div>
+            <div class="tabs" role="group" aria-label="Filter gallery">
+              <button class="tab" type="button" data-gal-filter="all" aria-selected="true">All</button>
+              <button class="tab" type="button" data-gal-filter="Concert photo" aria-selected="false">Photos</button>
+              <button class="tab" type="button" data-gal-filter="Fan art" aria-selected="false">Fan art</button>
+              <button class="tab" type="button" data-gal-filter="Tattoo" aria-selected="false">Tattoos</button>
+            </div>
+            <div class="gallery-grid" id="gallery-approved"></div>
+          </div>
+        </div>
+
+        <div class="card mod-panel" id="mod-panel">
+          <h3>Moderator <span>Queue</span></h3>
+          <div id="mod-locked">
+            <form class="mod-login" id="mod-login">
+              <div>
+                <label for="mod-pass">Moderator passcode</label>
+                <input type="text" id="mod-pass" autocomplete="off">
+              </div>
+              <button class="btn btn--ghost" type="submit">Unlock</button>
+            </form>
+            <p class="form-status" id="mod-status"></p>
+          </div>
+          <div id="mod-unlocked" hidden>
+            <p class="form-note"><span id="mod-count">0</span> pending submission(s). <button class="btn btn--small btn--ghost" type="button" id="mod-lock">Lock</button></p>
+            <div class="gallery-grid" id="gallery-pending" style="margin-top:1rem"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+      <button class="btn btn--small" type="button" id="lightbox-close">Close</button>
+      <img id="lightbox-img" alt="">
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Stones Fan Hub is an unofficial, non-commercial fan site. It is not affiliated with The Rolling Stones or their labels.</p>
+      <p>Tickets and official dates: <a href="https://rollingstones.com/tour/" target="_blank" rel="noopener">rollingstones.com/tour</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
