@@ -820,6 +820,26 @@
     render();
   }
 
+  /* ---------- 404 page ---------- */
+
+  function initNotFound() {
+    const el = $("#missing-path");
+    if (!el) return;
+    el.innerHTML = `Not found: <code>${escapeHTML(decodeURIComponent(location.pathname))}</code>`;
+
+    // Point near-miss URLs (e.g. /album, /tours.html) at the page they probably meant.
+    const path = location.pathname.toLowerCase();
+    const guesses = [
+      { match: /album|song|disc/, href: "albums.html", label: "Albums" },
+      { match: /tour|concert|gallery|memor|show/, href: "toursandconcerts.html", label: "Tours & Concerts" },
+      { match: /trivia|quiz|home|index/, href: "index.html", label: "Home" }
+    ];
+    const guess = guesses.find((g) => g.match.test(path));
+    if (guess) {
+      el.innerHTML += ` · Did you mean <a href="/aim-w4d3-portfolio/${guess.href}">${guess.label}</a>?`;
+    }
+  }
+
   /* ---------- Boot ---------- */
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -830,5 +850,6 @@
     initTours();
     initMemories();
     initGallery();
+    initNotFound();
   });
 })();

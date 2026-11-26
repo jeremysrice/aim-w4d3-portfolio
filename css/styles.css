@@ -488,6 +488,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .lightbox img { max-height: 85vh; border-radius: var(--radius); }
 .lightbox button { position: absolute; top: 1rem; right: 1rem; }
 
+/* ---------- 404 ---------- */
+
+.not-found { min-height: calc(100vh - 64px - 120px); display: grid; align-items: center; }
+.not-found-code {
+  font-size: clamp(6rem, 22vw, 12rem);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.04em;
+}
+.not-found h2 { font-size: clamp(1.5rem, 3.5vw, 2.2rem); }
+.not-found h2 em { color: var(--amber); }
+.not-found #missing-path code { color: var(--amber); word-break: break-all; }
+
 /* ---------- Footer ---------- */
 
 .site-footer {
