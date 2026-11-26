@@ -336,12 +336,22 @@
       if (saved) { setStatus(els.status, "This score is already saved.", "error"); return; }
       const name = els.name.value.trim();
       if (!name) { setStatus(els.status, "Please enter a name.", "error"); return; }
+      const entry = { name, score, correct, date: Date.now() };
       const scores = store.get(LB_KEY, []);
-      scores.push({ name, score, correct, date: Date.now() });
+      scores.push(entry);
       scores.sort((a, b) => b.score - a.score);
-      store.set(LB_KEY, scores.slice(0, 10));
+      const top = scores.slice(0, 10);
       saved = true;
-      setStatus(els.status, "Score saved to the leaderboard.", "success");
+      if (!top.includes(entry)) {
+        setStatus(els.status, `${score} points didn't make the top 10 this time. Play again to beat ${top[top.length - 1].score}!`, "error");
+        return;
+      }
+      if (!store.set(LB_KEY, top)) {
+        saved = false;
+        setStatus(els.status, "Couldn't save. This browser's storage may be full or disabled.", "error");
+        return;
+      }
+      setStatus(els.status, `Score saved: you're #${top.indexOf(entry) + 1} on the leaderboard.`, "success");
       renderLeaderboard();
     });
 
@@ -722,7 +732,9 @@
         <td class="muted">${escapeHTML(l.why)}</td>
       </tr>`).join("");
 
-    const today = new Date().toISOString().slice(0, 10);
+    // Visitor's local date as YYYY-MM-DD (toISOString would use UTC and roll over to "tomorrow" in the evening).
+    const now = new Date();
+    const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
     const future = UPCOMING.filter((u) => u.date >= today).sort((a, b) => a.date.localeCompare(b.date));
     $("#upcoming-list").innerHTML = future.length
       ? `<div class="tour-table-wrap"><table class="tour-table"><thead><tr><th>Date</th><th>Venue</th><th>Tour</th></tr></thead><tbody>
@@ -730,15 +742,24 @@
          </tbody></table></div>`
       : `<p class="empty-state">No upcoming dates are listed right now. For announcements, check <a href="https://rollingstones.com/tour/" target="_blank" rel="noopener">the official tour page</a>.</p>`;
 
-    // Tabs
+    // Tabs (ARIA tabs pattern: only the active tab is in the Tab order; arrow keys move between tabs)
     const tabs = $$('[role="tab"]');
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        tabs.forEach((t) => {
-          const on = t === tab;
-          t.setAttribute("aria-selected", String(on));
-          $("#" + t.getAttribute("aria-controls")).hidden = !on;
-        });
+    const select = (tab, focus) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        $("#" + t.getAttribute("aria-controls")).hidden = !on;
+      });
+      if (focus) tab.focus();
+    };
+    tabs.forEach((tab, i) => {
+      tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1;
+      tab.addEventListener("click", () => select(tab, false));
+      tab.addEventListener("keydown", (e) => {
+        const n = tabs.length;
+        const target = { ArrowRight: tabs[(i + 1) % n], ArrowLeft: tabs[(i - 1 + n) % n], Home: tabs[0], End: tabs[n - 1] }[e.key];
+        if (target) { e.preventDefault(); select(target, true); }
       });
     });
   }
@@ -767,12 +788,21 @@
       filter.appendChild(o);
     }
 
-    // When a year is typed, suggest the matching tour.
+    // When a year is typed, suggest the matching tour. The suggestion follows later year changes
+    // until the visitor picks a tour themselves.
+    let tourAutoPicked = false;
     yearInput.addEventListener("change", () => {
+      if (tourSel.value && !tourAutoPicked) return; // respect a manual choice
       const y = Number(yearInput.value);
       const match = TOURS.find((t) => y >= +t.start.slice(0, 4) && y <= +t.end.slice(0, 4));
-      if (match && !tourSel.value) tourSel.value = match.name;
+      tourSel.value = match ? match.name : "";
+      tourAutoPicked = Boolean(match);
     });
+    tourSel.addEventListener("change", () => { tourAutoPicked = false; });
+    form.addEventListener("reset", () => { tourAutoPicked = false; });
+
+    // One like per memory per browser.
+    const LIKED_KEY = "sfh_liked_memories";
 
     function render() {
       const all = store.get(MEM_KEY, []).slice().sort((a, b) => a.year - b.year || a.created - b.created);
@@ -782,8 +812,10 @@
         timeline.innerHTML = '<p class="empty-state">No memories pinned here yet. Share yours!</p>';
         return;
       }
+      const liked = store.get(LIKED_KEY, []);
       let html = "", decade = null;
       list.forEach((m) => {
+        const isLiked = liked.includes(m.id);
         const d = Math.floor(m.year / 10) * 10;
         if (d !== decade) { decade = d; html += `<h3 class="timeline-decade">${d}s</h3>`; }
         html += `
@@ -794,7 +826,9 @@
             </header>
             <p>${escapeHTML(m.story)}</p>
             <div class="pin-actions">
-              <button class="btn btn--small btn--ghost" type="button" data-like="${m.id}">♥ ${m.likes || 0}</button>
+              <button class="btn btn--small btn--ghost" type="button" data-like="${escapeHTML(m.id)}"
+                aria-pressed="${isLiked}" ${isLiked ? "disabled" : ""}
+                aria-label="${isLiked ? "You liked this memory" : "Like this memory"} (${m.likes || 0} likes)">♥ ${m.likes || 0}</button>
             </div>
           </article>`;
       });
@@ -803,10 +837,18 @@
 
     timeline.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-like]");
-      if (!btn) return;
+      if (!btn || btn.disabled) return;
+      const id = btn.dataset.like;
+      const liked = store.get(LIKED_KEY, []);
+      if (liked.includes(id)) return;
       const all = store.get(MEM_KEY, []);
-      const m = all.find((x) => x.id === btn.dataset.like);
-      if (m) { m.likes = (m.likes || 0) + 1; store.set(MEM_KEY, all); render(); }
+      const m = all.find((x) => x.id === id);
+      if (!m) return;
+      m.likes = (m.likes || 0) + 1;
+      liked.push(id);
+      store.set(MEM_KEY, all);
+      store.set(LIKED_KEY, liked);
+      render();
     });
 
     form.addEventListener("submit", (e) => {
@@ -866,7 +908,7 @@
     function item(g, withActions) {
       return `
         <figure class="gallery-item">
-          <img src="${g.img}" alt="${escapeHTML(g.category)} by ${escapeHTML(g.name)}${g.caption ? ": " + escapeHTML(g.caption) : ""}" data-full="${g.id}" loading="lazy">
+          <img src="${g.img}" alt="${escapeHTML(g.category)} by ${escapeHTML(g.name)}${g.caption ? ": " + escapeHTML(g.caption) : ""}" tabindex="0" title="View larger" loading="lazy">
           <figcaption>
             <span class="cat">${escapeHTML(g.category)}</span><br>
             ${g.caption ? escapeHTML(g.caption) + "<br>" : ""}
@@ -921,7 +963,7 @@
     $$("[data-gal-filter]").forEach((b) => {
       b.addEventListener("click", () => {
         filter = b.dataset.galFilter;
-        $$("[data-gal-filter]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+        $$("[data-gal-filter]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
         render();
       });
     });
@@ -960,19 +1002,36 @@
       render();
     });
 
-    // Lightbox
-    document.addEventListener("click", (e) => {
-      const img = e.target.closest(".gallery-item img");
-      if (!img) return;
+    // Lightbox: remembers what opened it and returns focus there on close.
+    let lbReturnFocus = null;
+    const openLb = (img) => {
+      lbReturnFocus = img;
       lbImg.src = img.src;
       lbImg.alt = img.alt;
       lightbox.classList.add("is-open");
       $("#lightbox-close").focus();
+    };
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".gallery-item img");
+      if (img) openLb(img);
     });
-    const closeLb = () => lightbox.classList.remove("is-open");
+    document.addEventListener("keydown", (e) => {
+      const img = e.target.closest && e.target.closest(".gallery-item img");
+      if (img && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openLb(img); }
+    });
+    const closeLb = () => {
+      if (!lightbox.classList.contains("is-open")) return;
+      lightbox.classList.remove("is-open");
+      if (lbReturnFocus && lbReturnFocus.isConnected) lbReturnFocus.focus();
+      lbReturnFocus = null;
+    };
     $("#lightbox-close").addEventListener("click", closeLb);
     lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLb(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLb(); });
+    // Keep Tab inside the open lightbox (its only control is the Close button).
+    lightbox.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") { e.preventDefault(); $("#lightbox-close").focus(); }
+    });
 
     render();
   }
@@ -982,7 +1041,9 @@
   function initNotFound() {
     const el = $("#missing-path");
     if (!el) return;
-    el.innerHTML = `Not found: <code>${escapeHTML(decodeURIComponent(location.pathname))}</code>`;
+    let shownPath = location.pathname;
+    try { shownPath = decodeURIComponent(shownPath); } catch (e) { /* malformed %-escape: show it as typed */ }
+    el.innerHTML = `Not found: <code>${escapeHTML(shownPath)}</code>`;
 
     // Point near-miss URLs (e.g. /album, /tours.html) at the page they probably meant.
     const path = location.pathname.toLowerCase();
