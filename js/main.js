@@ -106,6 +106,42 @@
     });
   }
 
+  /* ---------- Page transitions (fallback setup runs immediately) ---------- */
+
+  // Browsers with cross-page View Transitions animate via CSS alone (@view-transition in styles.css).
+  // Others get a CSS fade-in on load and a short fade-out before leaving, wired up here.
+  const PT_NATIVE = "CSSViewTransitionRule" in window;
+  const PT_REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PT_OUT_MS = 220;
+  if (!PT_NATIVE && !PT_REDUCED) document.documentElement.classList.add("pt-fallback");
+
+  function initPageTransitions() {
+    if (PT_NATIVE || PT_REDUCED) return;
+    const root = document.documentElement;
+
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("a[href]");
+      if (!a || e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;   // new tab / window
+      if (a.target && a.target !== "_self") return;
+      if (a.hasAttribute("download")) return;
+
+      const url = new URL(a.href, location.href);
+      if (url.origin !== location.origin) return;                      // external link
+      const samePage = url.pathname === location.pathname && url.search === location.search;
+      if (samePage) return;                                            // in-page #anchor
+
+      e.preventDefault();
+      root.classList.add("pt-leaving");
+      setTimeout(() => { location.href = url.href; }, PT_OUT_MS);
+    });
+
+    // Coming back via the Back button can restore a page from cache mid-fade: reset it.
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) root.classList.remove("pt-leaving");
+    });
+  }
+
   /* ---------- 2. Navigation ---------- */
 
   function initNav() {
@@ -923,6 +959,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     initNav();
     initThemeToggle();
+    initPageTransitions();
     initTrivia();
     initAlbums();
     initSongGame();
