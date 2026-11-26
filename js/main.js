@@ -171,6 +171,33 @@
     window.addEventListener("resize", () => { if (window.innerWidth > 760) close(); });
   }
 
+  /* ---------- Footer links (generated from the header nav) ---------- */
+
+  // The header nav is the single source of truth: add a page there and it appears in the footer too.
+  function initFooterNav() {
+    const source = $("#nav-links");
+    const footer = $(".site-footer .container");
+    if (!source || !footer || $(".footer-nav", footer)) return;
+
+    const nav = document.createElement("nav");
+    nav.className = "footer-nav";
+    nav.setAttribute("aria-label", "Footer");
+    const list = document.createElement("ul");
+
+    $$("a", source).forEach((link) => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = link.getAttribute("href"); // keep the original relative/absolute href
+      a.textContent = link.textContent.trim();
+      if (link.getAttribute("aria-current") === "page") a.setAttribute("aria-current", "page");
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    nav.appendChild(list);
+    footer.prepend(nav);
+  }
+
   /* ---------- 3. Home: trivia ---------- */
 
   const TRIVIA = [
@@ -958,6 +985,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     initNav();
+    initFooterNav();
     initThemeToggle();
     initPageTransitions();
     initTrivia();
