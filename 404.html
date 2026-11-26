@@ -7,6 +7,8 @@
   <title>Page Not Found · Stones Fan Hub</title>
   <!-- Absolute paths: GitHub Pages serves this page for any missing URL, even nested ones like /aim-w4d3-portfolio/a/b/c -->
   <link rel="stylesheet" href="/aim-w4d3-portfolio/css/styles.css">
+  <!-- Loaded in <head> (not deferred) so the saved theme is applied before the page paints. All other code waits for DOMContentLoaded. -->
+  <script src="/aim-w4d3-portfolio/js/main.js"></script>
 </head>
 <body data-page="404">
 
@@ -21,6 +23,7 @@
         <li><a href="/aim-w4d3-portfolio/albums.html">Albums</a></li>
         <li><a href="/aim-w4d3-portfolio/toursandconcerts.html">Tours &amp; Concerts</a></li>
       </ul>
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch to light theme" title="Switch to light theme"><span aria-hidden="true">☀</span></button>
     </nav>
   </header>
 
@@ -59,6 +62,5 @@
     </div>
   </footer>
 
-  <script src="/aim-w4d3-portfolio/js/main.js"></script>
 </body>
 </html>

@@ -58,6 +58,54 @@
     el.classList.toggle("is-success", type === "success");
   }
 
+  /* ---------- Theme (runs immediately, before first paint) ---------- */
+
+  const THEME_KEY = "sfh_theme";
+
+  function storedTheme() {
+    try {
+      const t = localStorage.getItem(THEME_KEY);
+      return t === "light" || t === "dark" ? t : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Dark is the site's default; light only applies once a visitor chooses it.
+  function preferredTheme() {
+    return storedTheme() || "dark";
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    const btn = document.getElementById("theme-toggle");
+    if (btn) {
+      const next = theme === "dark" ? "light" : "dark";
+      btn.setAttribute("aria-label", `Switch to ${next} theme`);
+      btn.title = `Switch to ${next} theme`;
+      btn.firstElementChild.textContent = theme === "dark" ? "☀" : "☾";
+    }
+  }
+
+  applyTheme(preferredTheme());
+
+  function initThemeToggle() {
+    const btn = $("#theme-toggle");
+    if (!btn) return;
+    applyTheme(preferredTheme()); // sync the button icon now that it exists
+
+    btn.addEventListener("click", () => {
+      const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* storage disabled: theme still switches for this page */ }
+      applyTheme(next);
+    });
+
+    // Keep other open tabs of the site in sync.
+    window.addEventListener("storage", (e) => {
+      if (e.key === THEME_KEY) applyTheme(preferredTheme());
+    });
+  }
+
   /* ---------- 2. Navigation ---------- */
 
   function initNav() {
@@ -261,7 +309,7 @@
     { title: "Their Satanic Majesties Request", year: 1967, wiki: "Their_Satanic_Majesties_Request", art: ["#4b2a6b", "#120a1c"],
       desc: "The band's full psychedelic detour, issued in a famous 3D lenticular sleeve.",
       tracks: ["She's a Rainbow", "2000 Light Years from Home", "Citadel", "In Another Land"] },
-    { title: "Beggars Banquet", year: 1968, wiki: "Beggars_Banquet", art: ["#d9d2c3", "#6d6656"],
+    { title: "Beggars Banquet", year: 1968, wiki: "Beggars_Banquet", art: ["#8a8273", "#2b2822"],
       desc: "A return to roots: acoustic blues, country and menace. It opened the run of records many fans rank as their best.",
       tracks: ["Sympathy for the Devil", "Street Fighting Man", "No Expectations", "Stray Cat Blues", "Salt of the Earth"] },
     { title: "Let It Bleed", year: 1969, wiki: "Let_It_Bleed", art: ["#7a2b1b", "#1a0905"],
@@ -874,6 +922,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     initNav();
+    initThemeToggle();
     initTrivia();
     initAlbums();
     initSongGame();

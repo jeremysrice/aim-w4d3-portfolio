@@ -18,10 +18,42 @@
   --success: #6cc785;
   --radius: 10px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --on-amber: #0e0e10;           /* text on amber fills */
+  --header-bg: rgba(14, 14, 16, 0.92);
+  --art-text: #f3efe8;           /* album tiles stay dark in both themes */
   --font-display: "Georgia", "Times New Roman", serif;
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --max: 1180px;
+  color-scheme: dark;
 }
+
+/* Light theme: set by js/main.js on <html data-theme="light"> */
+:root[data-theme="light"] {
+  /* High-contrast gray + red palette. Body text ~16.6:1, muted ~10.6:1, red accent ~6.4:1,
+     form-control outlines ~4.5:1. (--amber is the site's accent variable; in light mode it holds red.) */
+  --coal-900: #e8f0fa;           /* page background: pale blue (text 16.4:1, red 6.4:1) */
+  --coal-800: #dcdcdc;           /* alternate sections */
+  --coal-700: #cddff3;           /* cards and table headers: a deeper blue so they stand off the page (text 13.9:1, red 5.4:1) */
+  --coal-600: #a8a8a8;           /* borders and dividers */
+  --coal-500: #6e6e6e;           /* input and control outlines */
+  --text: #111111;
+  --text-muted: #363636;
+  --amber: #b0001e;              /* accent: deep red */
+  --amber-soft: #850016;         /* accent hover */
+  --amber-dim: rgba(176, 0, 30, 0.1);
+  --danger: #8f0a00;
+  --success: #17663a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+  --on-amber: #ffffff;
+  --header-bg: rgba(232, 240, 250, 0.96);
+  --art-badge: #ffffff;
+  color-scheme: light;
+}
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .album-card,
+:root[data-theme="light"] .memory,
+:root[data-theme="light"] .gallery-item { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16); }
+:root[data-theme="light"] .site-header { border-bottom-color: var(--coal-500); }
 
 *,
 *::before,
@@ -41,6 +73,7 @@ body {
   font-family: var(--font-body);
   line-height: 1.6;
   min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
   display: flex;
   flex-direction: column;
 }
@@ -75,6 +108,9 @@ h1, h2, h3 {
 .section-title span { color: var(--amber); }
 .section-lead { color: var(--text-muted); max-width: 65ch; margin: 0 0 2rem; }
 
+/* Make the HTML hidden attribute win over component display rules (e.g. .btn { display: inline-flex }) */
+[hidden] { display: none !important; }
+
 .visually-hidden {
   position: absolute !important;
   width: 1px; height: 1px;
@@ -89,7 +125,7 @@ h1, h2, h3 {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(14, 14, 16, 0.92);
+  background: var(--header-bg);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--coal-600);
 }
@@ -114,6 +150,7 @@ h1, h2, h3 {
 .nav-links {
   display: flex;
   gap: 0.25rem;
+  margin-left: auto;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -130,12 +167,30 @@ h1, h2, h3 {
 }
 .nav-links a:hover { color: var(--text); background: var(--coal-700); }
 .nav-links a[aria-current="page"] {
-  color: var(--coal-900);
+  color: var(--on-amber);
   background: var(--amber);
 }
 
+.theme-toggle {
+  margin-left: 0.75rem;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--coal-500);
+  background: transparent;
+  color: var(--amber);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.theme-toggle:hover { border-color: var(--amber); background: var(--amber-dim); }
+
 .nav-toggle {
   display: none;
+  margin-left: 0.5rem;
   background: none;
   border: 1px solid var(--coal-500);
   border-radius: 6px;
@@ -156,6 +211,8 @@ h1, h2, h3 {
 
 @media (max-width: 760px) {
   .nav-toggle { display: block; }
+  .theme-toggle { margin-left: auto; }
+  .nav-toggle { order: 3; }  /* hamburger sits at the far right, after the theme button */
   .nav-links {
     position: absolute;
     top: 64px;
@@ -183,14 +240,14 @@ h1, h2, h3 {
   border-radius: 999px;
   border: 1px solid var(--amber);
   background: var(--amber);
-  color: var(--coal-900);
+  color: var(--on-amber);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.2s, color 0.2s, transform 0.1s;
 }
-.btn:hover { background: var(--amber-soft); color: var(--coal-900); }
+.btn:hover { background: var(--amber-soft); color: var(--on-amber); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -199,7 +256,7 @@ h1, h2, h3 {
 
 .btn--small { padding: 0.4rem 0.9rem; font-size: 0.9rem; }
 .btn--danger { background: transparent; border-color: var(--danger); color: var(--danger); }
-.btn--danger:hover { background: rgba(229, 96, 79, 0.15); color: var(--danger); }
+.btn--danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
 
 .form-grid { display: grid; gap: 1rem; }
 .form-row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
@@ -264,8 +321,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   overflow: hidden;
   padding: clamp(5rem, 14vw, 9rem) 0;
   background:
-    radial-gradient(ellipse at 75% 20%, rgba(245, 166, 35, 0.22), transparent 55%),
-    radial-gradient(ellipse at 10% 90%, rgba(245, 166, 35, 0.1), transparent 50%),
+    radial-gradient(ellipse at 75% 20%, color-mix(in srgb, var(--amber) 22%, transparent), transparent 55%),
+    radial-gradient(ellipse at 10% 90%, color-mix(in srgb, var(--amber) 10%, transparent), transparent 50%),
     linear-gradient(180deg, var(--coal-800), var(--coal-900));
   border-bottom: 1px solid var(--coal-600);
 }
@@ -335,8 +392,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   transition: border-color 0.2s, background 0.2s;
 }
 .option-btn:hover:not(:disabled) { border-color: var(--amber); background: var(--amber-dim); }
-.option-btn.is-correct { border-color: var(--success); background: rgba(108, 199, 133, 0.15); }
-.option-btn.is-wrong { border-color: var(--danger); background: rgba(229, 96, 79, 0.15); }
+.option-btn.is-correct { border-color: var(--success); background: color-mix(in srgb, var(--success) 15%, transparent); }
+.option-btn.is-wrong { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 15%, transparent); }
 .option-btn:disabled { cursor: default; }
 
 .quiz-feedback { min-height: 1.6em; margin: 1rem 0 0; }
@@ -386,7 +443,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--art-text);
   background: var(--art, linear-gradient(135deg, #2a2a31, #111));
   position: relative;
 }
@@ -399,7 +456,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   padding: 0.15rem 0.55rem;
   border-radius: 99px;
   background: rgba(0, 0, 0, 0.55);
-  color: var(--amber);
+  color: var(--art-badge, var(--amber));
 }
 
 .album-body { padding: 1.25rem; display: flex; flex-direction: column; flex: 1; }
@@ -452,7 +509,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   font: inherit;
   cursor: pointer;
 }
-.tab[aria-selected="true"] { background: var(--amber); border-color: var(--amber); color: var(--coal-900); font-weight: 600; }
+.tab[aria-selected="true"] { background: var(--amber); border-color: var(--amber); color: var(--on-amber); font-weight: 600; }
 
 .tour-table-wrap { overflow-x: auto; border: 1px solid var(--coal-600); border-radius: var(--radius); }
 .tour-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
@@ -546,7 +603,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   transition: opacity 0.25s, transform 0.25s, visibility 0.25s, background 0.2s, color 0.2s;
 }
 .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
-.to-top:hover { background: var(--amber); color: var(--coal-900); }
+.to-top:hover { background: var(--amber); color: var(--on-amber); }
 @media (max-width: 760px) { .to-top { right: 1rem; bottom: 1rem; width: 44px; height: 44px; } }
 
 /* ---------- Footer ---------- */

@@ -6,6 +6,8 @@
   <meta name="description" content="Rolling Stones tours and landmark concerts, a fan memories wall and a moderated fan gallery.">
   <title>Tours &amp; Concerts · Stones Fan Hub</title>
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Loaded in <head> (not deferred) so the saved theme is applied before the page paints. All other code waits for DOMContentLoaded. -->
+  <script src="js/main.js"></script>
 </head>
 <body data-page="tours">
 
@@ -20,6 +22,7 @@
         <li><a href="albums.html">Albums</a></li>
         <li><a href="toursandconcerts.html" aria-current="page">Tours &amp; Concerts</a></li>
       </ul>
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch to light theme" title="Switch to light theme"><span aria-hidden="true">☀</span></button>
     </nav>
   </header>
 
@@ -197,6 +200,5 @@
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
 </body>
 </html>
