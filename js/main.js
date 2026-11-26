@@ -840,6 +840,36 @@
     }
   }
 
+  /* ---------- Back to top ---------- */
+
+  function initBackToTop() {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "to-top";
+    btn.setAttribute("aria-label", "Back to top");
+    btn.innerHTML = '<span aria-hidden="true">↑</span>';
+    document.body.appendChild(btn);
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let ticking = false;
+    const update = () => {
+      btn.classList.toggle("is-visible", window.scrollY > window.innerHeight * 0.6);
+      ticking = false;
+    };
+    window.addEventListener("scroll", () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+
+    btn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+      // Move keyboard focus back to the top so tabbing continues from the header.
+      const brand = $(".brand");
+      if (brand) brand.focus({ preventScroll: true });
+    });
+
+    update();
+  }
+
   /* ---------- Boot ---------- */
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -851,5 +881,6 @@
     initMemories();
     initGallery();
     initNotFound();
+    initBackToTop();
   });
 })();
