@@ -195,7 +195,8 @@
     });
 
     nav.appendChild(list);
-    footer.prepend(nav);
+    const logo = $(".footer-logo", footer);
+    if (logo) logo.after(nav); else footer.prepend(nav);
   }
 
   /* ---------- 3. Home: trivia ---------- */
