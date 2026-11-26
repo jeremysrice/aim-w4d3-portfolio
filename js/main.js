@@ -451,6 +451,43 @@
   const GAME_ROUNDS = 10;
   const GAME_BEST_KEY = "sfh_song_best";
 
+  // MusicBrainz release-group IDs, used to load front covers from the Cover Art Archive (coverartarchive.org).
+  // MusicBrainz files the 1964 UK debut under its US title, "England's Newest Hit Makers".
+  const COVER_IDS = {
+    "The Rolling Stones": "919b8534-f40f-3a07-be48-0a9095ab5ada",
+    "The Rolling Stones No. 2": "66b53bd6-043b-3635-8d9d-02aa71bc0af8",
+    "Out of Our Heads": "3be81f5e-9bdd-303a-b9bf-f8eb2059ef9f",
+    "Aftermath": "26987c39-5914-483b-a897-d43ce6aad9b1",
+    "Between the Buttons": "72a77b05-0006-3838-a378-c56b65abc733",
+    "Their Satanic Majesties Request": "40a087e8-908a-334d-b520-88a820deb09d",
+    "Beggars Banquet": "6e672bbd-7c7f-32f8-8335-c603be99d13b",
+    "Let It Bleed": "784c0edd-0f37-33a2-9ca5-dff87b4f999c",
+    "Sticky Fingers": "4a4213d0-f224-3d51-bcca-476f61162681",
+    "Exile on Main St.": "4838a3c9-fd2b-30a5-83eb-e32545b5d7fc",
+    "Goats Head Soup": "e82ba8db-3712-3de0-bbe5-0311b89db7e2",
+    "It's Only Rock 'n Roll": "cc0ef7ba-01f1-3faf-8238-b63369ff5d2b",
+    "Black and Blue": "b13da40b-fb15-382e-b305-b65ced849782",
+    "Some Girls": "b44bc358-a28f-3a1f-b07e-604910f12d37",
+    "Emotional Rescue": "0c977adb-6dd3-330c-9acb-a40d2104a539",
+    "Tattoo You": "fdbc4f51-817d-33ab-af9f-4bcc22286932",
+    "Undercover": "515d36a9-a39a-35d8-a522-7f5670fe558e",
+    "Dirty Work": "fb2dc90c-9f8a-3fa3-b9bc-2001dbe6a561",
+    "Steel Wheels": "ef78739b-ea31-32e2-a927-58fe228c7354",
+    "Voodoo Lounge": "7645ef59-6d8c-37fe-8467-d566d3cf5926",
+    "Bridges to Babylon": "d7ef7347-c582-3109-a54a-9bc6cde8ee45",
+    "A Bigger Bang": "6d1a87c3-9e11-36d8-8c41-3e11b974fde7",
+    "Blue & Lonesome": "ab9b8aa8-d2bc-42cd-a36b-842f61de55f3",
+    "Hackney Diamonds": "26b9191a-d4e5-4c92-a3c5-6749a5ac83a2"
+  };
+
+  function coverImg(al) {
+    const id = COVER_IDS[al.title];
+    if (!id) return "";
+    const base = `https://coverartarchive.org/release-group/${id}/front`;
+    return `<img class="album-cover" src="${base}-250" srcset="${base}-250 1x, ${base}-500 2x"
+      alt="${escapeHTML(al.title)} album cover" width="250" height="250" loading="lazy" decoding="async">`;
+  }
+
   function albumCard(al) {
     const tracks = al.tracks.map((t) => `<li>${escapeHTML(t)}</li>`).join("");
     return `
@@ -458,6 +495,7 @@
         <div class="album-art" style="--art: linear-gradient(135deg, ${al.art[0]}, ${al.art[1]})">
           <span class="year">${al.year}</span>
           <span>${escapeHTML(al.title)}</span>
+          ${coverImg(al)}
         </div>
         <div class="album-body">
           <h3>${escapeHTML(al.title)}</h3>
@@ -495,6 +533,13 @@
 
     search.addEventListener("input", render);
     era.addEventListener("change", render);
+
+    // If a cover fails to load, remove it so the gradient tile with the album title shows instead.
+    // (Image "error" events don't bubble, so listen in the capture phase.)
+    grid.addEventListener("error", (e) => {
+      if (e.target.classList && e.target.classList.contains("album-cover")) e.target.remove();
+    }, true);
+
     render();
   }
 
