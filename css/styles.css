@@ -27,6 +27,15 @@
   color-scheme: dark;
 }
 
+/* Shared header background for every page (homepage hero, inner page headers, 404).
+   Built from theme variables, so it switches with the dark/light toggle. */
+:root {
+  --stage-bg:
+    radial-gradient(ellipse at 75% 20%, color-mix(in srgb, var(--amber) 22%, transparent), transparent 55%),
+    radial-gradient(ellipse at 10% 90%, color-mix(in srgb, var(--amber) 10%, transparent), transparent 50%),
+    linear-gradient(180deg, var(--coal-800), var(--coal-900));
+}
+
 /* Light theme: set by js/main.js on <html data-theme="light"> */
 :root[data-theme="light"] {
   /* High-contrast gray + red palette. Body text ~16.6:1, muted ~10.6:1, red accent ~6.4:1,
@@ -350,13 +359,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   position: relative;
   overflow: hidden;
   padding: clamp(5rem, 14vw, 9rem) 0;
-  background:
-    radial-gradient(ellipse at 75% 20%, color-mix(in srgb, var(--amber) 22%, transparent), transparent 55%),
-    radial-gradient(ellipse at 10% 90%, color-mix(in srgb, var(--amber) 10%, transparent), transparent 50%),
-    linear-gradient(180deg, var(--coal-800), var(--coal-900));
+  background: var(--stage-bg);
   border-bottom: 1px solid var(--coal-600);
 }
-.hero::after {
+.hero::after,
+.page-hero::after {
   /* subtle stage-light stripes */
   content: "";
   position: absolute;
@@ -378,7 +385,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .hero p { font-size: 1.15rem; color: var(--text-muted); max-width: 58ch; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
 
-.page-hero { padding: 3.5rem 0 2.5rem; border-bottom: 1px solid var(--coal-600); background: linear-gradient(180deg, var(--coal-800), var(--coal-900)); }
+/* Inner pages share the homepage's stage-light background, just shorter. */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 3.5rem 0 2.5rem;
+  border-bottom: 1px solid var(--coal-600);
+  background: var(--stage-bg);
+}
+.page-hero > .container { position: relative; z-index: 1; }
 .page-hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
 .page-hero h1 span { color: var(--amber); }
 .page-hero p { color: var(--text-muted); max-width: 65ch; margin: 0; }
