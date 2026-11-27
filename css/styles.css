@@ -543,6 +543,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .album-body { padding: 1.25rem; display: flex; flex-direction: column; flex: 1; }
 .album-body h3 { font-size: 1.2rem; margin-bottom: 0.4rem; }
 .album-body p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 1rem; }
+/* MusicBrainz info line, filled in by fetch(); hidden until the data arrives. */
+.album-body .album-mb { font-size: 0.8rem; color: var(--amber-text); margin: 0 0 0.6rem; }
+.album-body .album-mb:empty { display: none; }
 .album-body h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--amber-text); margin: 0 0 0.4rem; }
 .track-list { margin: 0 0 1.25rem; padding-left: 1.2rem; font-size: 0.92rem; }
 .track-list li { margin-bottom: 0.3rem; }

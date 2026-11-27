@@ -29,6 +29,15 @@ Cover Art Archive (coverartarchive.org/release-group/{id}/front-250 and -500)
   the API can return HTTP 503 to users who exceed a limit. The site loads
   at most 24 covers per page view, lazily, from each visitor's browser.
 
+MusicBrainz Web Service (musicbrainz.org/ws/2/release-group, via fetch())
+  Used for: Release dates, edition counts and genre tags on each album
+  card on the Albums page.
+  Where: js/main.js, fetchMusicBrainzAlbums, mbLine and initAlbums
+  Rate limit: An average of 1 request per second per IP address; going
+  over returns HTTP 503. The site sends ONE request for all 24 albums
+  and caches the result in localStorage for 24 hours, so each visitor
+  makes at most one request a day.
+
 jsDelivr CDN (cdn.jsdelivr.net)
   Used for: Loading the photo-screening libraries, pinned to exact
   versions with integrity hashes.
@@ -65,9 +74,14 @@ DOM API (querySelector, classList, addEventListener, setAttribute, etc.)
   Used for: Every interactive feature on the site.
   Rate limit: None.
 
+Fetch API (fetch, AbortController)
+  Used for: Requesting album data from MusicBrainz, with a 10-second
+  timeout.
+  Rate limit: None in the browser (MusicBrainz's own limit is above).
+
 Web Storage: localStorage
   Used for: Theme choice, trivia leaderboard, best song-game score,
-  memories, likes and fan-gallery posts.
+  memories, likes, fan-gallery posts and the cached MusicBrainz data.
   Rate limit: None. Quota: about 5 MB per site in most browsers.
 
 Web Storage: sessionStorage
@@ -156,6 +170,7 @@ YouTube search results page
 
 MusicBrainz Web Service (musicbrainz.org/ws/2)
   Used for: Looking up the database IDs for all 24 studio albums.
+  (The live site now also calls it; see section 1.)
   Rate limit: An average of 1 request per second per IP address. Faster
   than that and all requests get HTTP 503 until the rate drops. Every
   request must send a User-Agent that identifies the app.

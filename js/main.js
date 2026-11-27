@@ -499,6 +499,68 @@
       alt="${escapeHTML(al.title)} album cover" width="250" height="250" loading="lazy" decoding="async">`;
   }
 
+  // Live album data from the MusicBrainz API (musicbrainz.org/ws/2). No key needed.
+  // MusicBrainz allows about 1 request per second per IP, so all 24 albums are fetched
+  // in ONE search request, and the result is cached in localStorage for a day.
+  const MB_CACHE_KEY = "sfh_mb_albums";
+  const MB_CACHE_MS = 24 * 60 * 60 * 1000;
+  const MB_TIMEOUT_MS = 10000;
+  let mbInfo = {}; // release-group ID -> { date, editions, genres }
+
+  async function fetchMusicBrainzAlbums() {
+    const cached = store.get(MB_CACHE_KEY, null);
+    if (cached && Date.now() - cached.savedAt < MB_CACHE_MS) return { data: cached.data, fromCache: true };
+
+    const query = Object.values(COVER_IDS).map((id) => "rgid:" + id).join(" OR ");
+    const url = "https://musicbrainz.org/ws/2/release-group?fmt=json&limit=25&query=" + encodeURIComponent(query);
+
+    // Give up after 10 seconds so the page never waits forever.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), MB_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error("MusicBrainz returned HTTP " + res.status); // e.g. 503 when rate-limited
+      const json = await res.json();
+
+      const data = {};
+      for (const rg of json["release-groups"] || []) {
+        data[rg.id] = {
+          date: rg["first-release-date"] || "",
+          editions: rg.count || 0,
+          // Tags are added by MusicBrainz users; keep only ones at least two people agreed on.
+          genres: (rg.tags || []).filter((t) => t.count >= 2).sort((a, b) => b.count - a.count).slice(0, 3).map((t) => t.name)
+        };
+      }
+      store.set(MB_CACHE_KEY, { savedAt: Date.now(), data });
+      return { data, fromCache: false };
+    } catch (err) {
+      // Offline, timed out or rate-limited: fall back to an older cached copy if there is one.
+      if (cached) return { data: cached.data, fromCache: true, stale: true };
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // MusicBrainz dates can be "1971-04-23", "1971-04" or just "1971".
+  function formatMbDate(s) {
+    const [y, m, d] = s.split("-").map(Number);
+    if (!y) return "";
+    if (!m) return String(y);
+    const opts = d ? { day: "numeric", month: "long", year: "numeric" } : { month: "long", year: "numeric" };
+    return new Date(y, m - 1, d || 1).toLocaleDateString(undefined, opts);
+  }
+
+  function mbLine(id) {
+    const info = mbInfo[id];
+    if (!info) return "";
+    const parts = [];
+    if (info.date) parts.push("Released " + formatMbDate(info.date));
+    if (info.editions) parts.push(info.editions + " editions");
+    if (info.genres.length) parts.push(info.genres.join(", "));
+    return escapeHTML(parts.join(" · "));
+  }
+
   // Each key track links to YouTube (the official video when the song game has a verified one,
   // otherwise a search) with a small secondary Spotify link.
   function trackItem(track) {
@@ -517,6 +579,7 @@
 
   function albumCard(al) {
     const tracks = al.tracks.map(trackItem).join("");
+    const mbId = COVER_IDS[al.title] || "";
     return `
       <article class="album-card">
         <div class="album-art" style="--art: linear-gradient(135deg, ${al.art[0]}, ${al.art[1]})">
@@ -526,11 +589,13 @@
         </div>
         <div class="album-body">
           <h3>${escapeHTML(al.title)}</h3>
+          <p class="album-mb" data-rgid="${mbId}">${mbId ? mbLine(mbId) : ""}</p>
           <p>${escapeHTML(al.desc)}</p>
           <h4>Key tracks</h4>
           <ol class="track-list">${tracks}</ol>
           <div class="album-links">
             <a href="${wiki(al.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a>
+            ${mbId ? `<a href="https://musicbrainz.org/release-group/${mbId}" target="_blank" rel="noopener">MusicBrainz ↗</a>` : ""}
             <a href="${spotifySearch(al.title)}" target="_blank" rel="noopener">Spotify ↗</a>
             <a href="${ytSearch(al.title + " album")}" target="_blank" rel="noopener">YouTube ↗</a>
           </div>
@@ -568,6 +633,20 @@
     }, true);
 
     render();
+
+    // The cards work without MusicBrainz; when its data arrives, fill in each card's info line.
+    const mbStatus = $("#album-mb-status");
+    if (mbStatus) mbStatus.textContent = "Loading release dates from MusicBrainz…";
+    fetchMusicBrainzAlbums()
+      .then(({ data, stale }) => {
+        mbInfo = data;
+        $$(".album-mb", grid).forEach((p) => { p.innerHTML = mbLine(p.dataset.rgid); });
+        if (mbStatus) mbStatus.innerHTML = 'Release dates, edition counts and genre tags from <a href="https://musicbrainz.org/" target="_blank" rel="noopener">MusicBrainz</a>' +
+          (stale ? " (saved copy; MusicBrainz couldn't be reached just now)." : ".");
+      })
+      .catch(() => {
+        if (mbStatus) mbStatus.textContent = "Couldn't reach MusicBrainz, so release dates aren't shown. Everything else works.";
+      });
   }
 
   function initSongGame() {
