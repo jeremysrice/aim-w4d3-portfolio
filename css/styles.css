@@ -840,3 +840,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .photo-item figcaption span { color: var(--text-muted); }
 .lightbox img { max-width: min(100%, 1600px); }
 .photo-grid > .empty-state { grid-column: 1 / -1; }
+
+/* Photo is being screened: dim the box and show a progress cursor */
+.upload-box.is-checking { opacity: 0.65; cursor: progress; border-style: dashed; animation: upload-pulse 1.2s ease-in-out infinite; }
+@keyframes upload-pulse { 50% { border-color: var(--amber); } }
+@media (prefers-reduced-motion: reduce) { .upload-box.is-checking { animation: none; } }

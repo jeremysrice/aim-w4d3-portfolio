@@ -878,14 +878,44 @@
       return "";
     }
 
-    photoInput.addEventListener("change", () => {
-      const file = photoInput.files[0];
-      if (file) {
-        const problem = validPhoto(file);
-        if (problem) { photoInput.value = ""; showPreview(null); return setStatus(status, problem, "error"); }
-        setStatus(status, "");
+    // Each chosen file is screened once; the result is cached per File object.
+    // Values: Promise<{ ok, img }> — rejects if the photo can't be read or the screener can't load.
+    const screenings = new WeakMap();
+    function screeningFor(file) {
+      if (!screenings.has(file)) {
+        screenings.set(file, loadImageFile(file).then(async (img) => ({ ok: (await screenPhoto(img)).ok, img })));
       }
-      showPreview(file || null);
+      return screenings.get(file);
+    }
+    const SCREEN_REJECT_MSG = "This photo can't be posted because it may contain nudity or sexual content. Please choose a different photo.";
+    function screenErrorMsg(err) {
+      return err && err.message === "decode failed"
+        ? "That photo couldn't be read. Try a JPG or PNG."
+        : "Photo screening couldn't load (check your connection), so photos can't be added right now. You can still pin your memory without a photo.";
+    }
+
+    photoInput.addEventListener("change", async () => {
+      const file = photoInput.files[0];
+      showPreview(null); // never show a preview until the photo has passed screening
+      if (!file) return;
+      const problem = validPhoto(file);
+      if (problem) { photoInput.value = ""; return setStatus(status, problem, "error"); }
+
+      photoBox.classList.add("is-checking");
+      setStatus(status, "Checking your photo…");
+      try {
+        const result = await screeningFor(file);
+        if (photoInput.files[0] !== file) return; // a different photo was chosen meanwhile
+        if (!result.ok) { photoInput.value = ""; return setStatus(status, SCREEN_REJECT_MSG, "error"); }
+        showPreview(file);
+        setStatus(status, "Photo checked and ready to pin.", "success");
+      } catch (err) {
+        if (photoInput.files[0] !== file) return;
+        photoInput.value = "";
+        setStatus(status, screenErrorMsg(err), "error");
+      } finally {
+        if (photoInput.files[0] === file || !photoInput.files[0]) photoBox.classList.remove("is-checking");
+      }
     });
     clearBtn.addEventListener("click", () => { photoInput.value = ""; showPreview(null); photoInput.focus(); });
     form.addEventListener("reset", () => showPreview(null));
@@ -1005,9 +1035,24 @@
       const id = uid();
       if (file) {
         submitBtn.disabled = true;
+        setStatus(status, "Checking your photo…");
+        // Screening is enforced here too, not just when the photo is picked.
+        let img;
+        try {
+          const result = await screeningFor(file);
+          if (!result.ok) {
+            photoInput.value = "";
+            showPreview(null);
+            return setStatus(status, SCREEN_REJECT_MSG, "error");
+          }
+          img = result.img;
+        } catch (err) {
+          photoInput.value = "";
+          showPreview(null);
+          return setStatus(status, screenErrorMsg(err), "error");
+        }
         setStatus(status, "Resizing your photo…");
         try {
-          const img = await loadImageFile(file);
           const [full, thumb] = await Promise.all([scaleToBlob(img, PHOTO_MAX, 0.85), scaleToBlob(img, THUMB_MAX, 0.8)]);
           const s = Math.min(1, THUMB_MAX / Math.max(img.naturalWidth, img.naturalHeight));
           await PhotoStore.put({ id, full, thumb, thumbW: Math.round(img.naturalWidth * s), thumbH: Math.round(img.naturalHeight * s) });
@@ -1067,6 +1112,62 @@
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     return new Promise((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/jpeg", quality));
+  }
+
+  /* ----- Content screening for uploaded photos -----
+     Uses NSFWJS (open-source nudity/explicit-content classifier, MobileNetV2 model) running on
+     TensorFlow.js entirely in the visitor's browser: photos are never sent anywhere to be checked.
+     The ~7.7 MB of libraries load only when someone first picks a photo, pinned to exact versions
+     with Subresource Integrity hashes so a tampered CDN file is refused. */
+  const SCREEN_SCRIPTS = [
+    ["https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js",
+      "sha384-vE8hbVJ4lezako5rlvE7bY0BVzWlFhZncPlckrqNwcUQpVtgbENTgZ8TBbnPjZre"],
+    ["https://cdn.jsdelivr.net/npm/nsfwjs@4.4.0/dist/models/mobilenet_v2/model.min.js",
+      "sha384-VsoJuRePCgpUmSlvPwW/IXzJGJk8PP0RQuAAGfhwKz2sGb7NroFRHBqD/EySC0vU"],
+    ["https://cdn.jsdelivr.net/npm/nsfwjs@4.4.0/dist/models/mobilenet_v2/group1-shard1of1.min.js",
+      "sha384-5F6gcz+dyppqYc8BDH0IbKZcRbVl2c+nUSShQMb1AFhdQES+d3bG5hHNOOIE5Yha"],
+    ["https://cdn.jsdelivr.net/npm/nsfwjs@4.4.0/dist/browser/nsfwjs.min.js",
+      "sha384-AgEYUP1dk2mGxhfUGZ4muudxnzuhFD4HFvGAOgeRu1a/78Ls+Jmx/TWEF4qU3aOF"]
+  ];
+  // Reject when the model thinks a photo is likely explicit (Porn + Hentai) or strongly sexual/nude (Sexy).
+  const SCREEN_EXPLICIT_MAX = 0.5;
+  const SCREEN_SEXY_MAX = 0.8;
+
+  function loadScript(src, integrity) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.integrity = integrity;
+      s.crossOrigin = "anonymous";
+      const timer = setTimeout(() => reject(new Error("screen-load")), 45000);
+      s.onload = () => { clearTimeout(timer); resolve(); };
+      s.onerror = () => { clearTimeout(timer); s.remove(); reject(new Error("screen-load")); };
+      document.head.appendChild(s);
+    });
+  }
+
+  let screenerPromise = null;
+  function getScreener() {
+    if (!screenerPromise) {
+      screenerPromise = (async () => {
+        for (const [src, integrity] of SCREEN_SCRIPTS) {
+          if (!document.querySelector(`script[src="${src}"]`)) await loadScript(src, integrity);
+        }
+        if (!window.nsfwjs) throw new Error("screen-load");
+        return window.nsfwjs.load("MobileNetV2");
+      })().catch((err) => { screenerPromise = null; throw err; });
+    }
+    return screenerPromise;
+  }
+
+  // Resolves to { ok, scores }. Throws "screen-load" if the screener can't be loaded.
+  async function screenPhoto(img) {
+    const model = await getScreener();
+    const predictions = await model.classify(img, 5);
+    const scores = Object.fromEntries(predictions.map((p) => [p.className, p.probability]));
+    const explicit = (scores.Porn || 0) + (scores.Hentai || 0);
+    const ok = explicit < SCREEN_EXPLICIT_MAX && (scores.Sexy || 0) < SCREEN_SEXY_MAX;
+    return { ok, scores };
   }
 
   // Photos are stored in IndexedDB rather than localStorage: a 1600px photo is a few hundred KB,
