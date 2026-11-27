@@ -147,7 +147,7 @@
     <section class="section section--alt" id="gallery">
       <div class="container">
         <h2 class="section-title">Fan <span>Gallery</span></h2>
-        <p class="section-lead">Share your concert photos, fan art and Stones tattoos. A moderator reviews each submission before it appears in the gallery. Please only upload images you made or took yourself.</p>
+        <p class="section-lead">Share your concert photos, fan art and Stones tattoos, or just a few words about them. A moderator reviews each submission before it appears in the gallery. Please only upload images you made or took yourself.</p>
 
         <div class="two-col">
           <form class="card form-grid" id="gallery-form" novalidate>
@@ -165,17 +165,17 @@
                 </select>
               </div>
               <div>
-                <label for="gal-file">Image</label>
-                <input type="file" id="gal-file" accept="image/*" required>
+                <label for="gal-file">Image (optional)</label>
+                <input type="file" id="gal-file" accept="image/*">
               </div>
             </div>
             <div>
-              <label for="gal-caption">Caption</label>
-              <input type="text" id="gal-caption" maxlength="120" placeholder="Hyde Park, 2013. Front row!">
+              <label for="gal-caption">Caption <span class="form-note">(required if you don't add an image)</span></label>
+              <input type="text" id="gal-caption" maxlength="280" placeholder="Hyde Park, 2013. Front row!">
             </div>
             <p class="form-status" id="gal-status" role="status" aria-live="polite"></p>
             <button class="btn" type="submit">Submit for review</button>
-            <p class="form-note">Images are resized before saving. Submissions are kept in this browser.</p>
+            <p class="form-note">Images are automatically checked for nudity and sexual content (in your browser; nothing is sent anywhere), then a moderator reviews them. Images are resized before saving. Submissions are kept in this browser.</p>
           </form>
 
           <div>

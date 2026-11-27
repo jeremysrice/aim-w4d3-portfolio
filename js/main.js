@@ -878,21 +878,7 @@
       return "";
     }
 
-    // Each chosen file is screened once; the result is cached per File object.
-    // Values: Promise<{ ok, img }> — rejects if the photo can't be read or the screener can't load.
-    const screenings = new WeakMap();
-    function screeningFor(file) {
-      if (!screenings.has(file)) {
-        screenings.set(file, loadImageFile(file).then(async (img) => ({ ok: (await screenPhoto(img)).ok, img })));
-      }
-      return screenings.get(file);
-    }
-    const SCREEN_REJECT_MSG = "This photo can't be posted because it may contain nudity or sexual content. Please choose a different photo.";
-    function screenErrorMsg(err) {
-      return err && err.message === "decode failed"
-        ? "That photo couldn't be read. Try a JPG or PNG."
-        : "Photo screening couldn't load (check your connection), so photos can't be added right now. You can still pin your memory without a photo.";
-    }
+    const screenErrorMsg = (err) => screenErrorMessage(err, "You can still pin your memory without a photo.");
 
     photoInput.addEventListener("change", async () => {
       const file = photoInput.files[0];
@@ -1170,6 +1156,23 @@
     return { ok, scores };
   }
 
+  // Shared by the memories photo box and the fan gallery.
+  // Each chosen file is screened once; the result is cached per File object.
+  // Values: Promise<{ ok, img }>; rejects if the image can't be read or the screener can't load.
+  const screenings = new WeakMap();
+  function screeningFor(file) {
+    if (!screenings.has(file)) {
+      screenings.set(file, loadImageFile(file).then(async (img) => ({ ok: (await screenPhoto(img)).ok, img })));
+    }
+    return screenings.get(file);
+  }
+  const SCREEN_REJECT_MSG = "This image can't be posted because it may contain nudity or sexual content. Please choose a different one.";
+  function screenErrorMessage(err, fallbackTip) {
+    return err && err.message === "decode failed"
+      ? "That image couldn't be read. Try a JPG or PNG."
+      : `Image screening couldn't load (check your connection), so images can't be added right now.${fallbackTip ? " " + fallbackTip : ""}`;
+  }
+
   // Photos are stored in IndexedDB rather than localStorage: a 1600px photo is a few hundred KB,
   // and localStorage's ~5 MB limit would fill after a handful of them.
   const PhotoStore = (() => {
@@ -1233,12 +1236,16 @@
     let modUnlocked = sessionStorage.getItem("sfh_mod") === "1";
 
     function item(g, withActions) {
+      // Image posts show the picture; text-only posts show the caption as a quote card instead.
+      const media = g.img
+        ? `<img src="${g.img}" alt="${escapeHTML(g.category)} by ${escapeHTML(g.name)}${g.caption ? ": " + escapeHTML(g.caption) : ""}" tabindex="0" title="View larger" loading="lazy">`
+        : `<blockquote class="gallery-text">${escapeHTML(g.caption || "")}</blockquote>`;
       return `
-        <figure class="gallery-item">
-          <img src="${g.img}" alt="${escapeHTML(g.category)} by ${escapeHTML(g.name)}${g.caption ? ": " + escapeHTML(g.caption) : ""}" tabindex="0" title="View larger" loading="lazy">
+        <figure class="gallery-item${g.img ? "" : " gallery-item--text"}">
+          ${media}
           <figcaption>
             <span class="cat">${escapeHTML(g.category)}</span><br>
-            ${g.caption ? escapeHTML(g.caption) + "<br>" : ""}
+            ${g.img && g.caption ? escapeHTML(g.caption) + "<br>" : ""}
             <span class="form-note">by ${escapeHTML(g.name)}</span>
           </figcaption>
           ${withActions ? `<div class="mod-actions">
@@ -1266,18 +1273,66 @@
       }
     }
 
+    // Screen images for nudity/sexual content as soon as they're picked (same check as first-show photos).
+    const fileInput = $("#gal-file");
+    const galSubmit = $('button[type="submit"]', form);
+    const galProblem = (file) =>
+      !file.type.startsWith("image/") ? "Please choose an image file."
+        : file.size > 15 * 1024 * 1024 ? "That image is over 15 MB." : "";
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return setStatus(status, "");
+      const problem = galProblem(file);
+      if (problem) { fileInput.value = ""; return setStatus(status, problem, "error"); }
+      setStatus(status, "Checking your image…");
+      try {
+        const result = await screeningFor(file);
+        if (fileInput.files[0] !== file) return; // a different file was chosen meanwhile
+        if (!result.ok) { fileInput.value = ""; return setStatus(status, SCREEN_REJECT_MSG, "error"); }
+        setStatus(status, "Image checked and ready to submit.", "success");
+      } catch (err) {
+        if (fileInput.files[0] !== file) return;
+        fileInput.value = "";
+        setStatus(status, screenErrorMessage(err, "You can still post without an image."), "error");
+      }
+    });
+
+    let galBusy = false;
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (galBusy) return;
       const name = $("#gal-name").value.trim();
-      const file = $("#gal-file").files[0];
+      const caption = $("#gal-caption").value.trim();
+      const file = fileInput.files[0]; // optional
       if (!name) return setStatus(status, "Please enter your name.", "error");
-      if (!file || !file.type.startsWith("image/")) return setStatus(status, "Please choose an image file.", "error");
-      if (file.size > 15 * 1024 * 1024) return setStatus(status, "That image is over 15 MB.", "error");
-      setStatus(status, "Processing image…");
+      if (!file && !caption) return setStatus(status, "Add an image or write a caption to post.", "error");
+      const problem = file ? galProblem(file) : "";
+      if (problem) return setStatus(status, problem, "error");
+
+      galBusy = true;
+      galSubmit.disabled = true;
+      try { await submitToGallery(name, caption, file); } finally { galBusy = false; galSubmit.disabled = false; }
+    });
+
+    async function submitToGallery(name, caption, file) {
+      let img = null;
+      if (file) {
+        // Screening is enforced at submit time too, not just when the file is picked.
+        setStatus(status, "Checking your image…");
+        try {
+          const result = await screeningFor(file);
+          if (!result.ok) { fileInput.value = ""; return setStatus(status, SCREEN_REJECT_MSG, "error"); }
+        } catch (err) {
+          fileInput.value = "";
+          return setStatus(status, screenErrorMessage(err, "You can still post without an image."), "error");
+        }
+        setStatus(status, "Processing image…");
+      }
       try {
-        const img = await resizeImage(file);
+        if (file) img = await resizeImage(file);
         const all = store.get(GAL_KEY, []);
-        all.push({ id: uid(), name, category: $("#gal-cat").value, caption: $("#gal-caption").value.trim(), img, status: "pending", created: Date.now() });
+        all.push({ id: uid(), name, category: $("#gal-cat").value, caption, img, status: "pending", created: Date.now() });
         if (!store.set(GAL_KEY, all)) return setStatus(status, "Storage is full. A moderator needs to clear some submissions first.", "error");
         form.reset();
         setStatus(status, "Thanks! Your submission is waiting for a moderator to review it.", "success");
@@ -1285,7 +1340,7 @@
       } catch (err) {
         setStatus(status, "That image couldn't be read. Try a JPG or PNG.", "error");
       }
-    });
+    }
 
     $$("[data-gal-filter]").forEach((b) => {
       b.addEventListener("click", () => {

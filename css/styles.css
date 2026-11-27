@@ -647,7 +647,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 
 /* Fan gallery */
 .gallery-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-.gallery-item { background: var(--coal-700); border: 1px solid var(--coal-600); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+.gallery-item { margin: 0; background: var(--coal-700); border: 1px solid var(--coal-600); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
 .gallery-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; cursor: zoom-in; }
 .gallery-item figcaption { padding: 0.8rem 1rem; font-size: 0.9rem; }
 .gallery-item .cat { color: var(--amber-text); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
@@ -845,3 +845,25 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .upload-box.is-checking { opacity: 0.65; cursor: progress; border-style: dashed; animation: upload-pulse 1.2s ease-in-out infinite; }
 @keyframes upload-pulse { 50% { border-color: var(--amber); } }
 @media (prefers-reduced-motion: reduce) { .upload-box.is-checking { animation: none; } }
+
+/* Text-only fan gallery posts */
+.gallery-text {
+  margin: 0;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  align-content: center;   /* keep the quote mark and text together in the middle */
+  gap: 0.5rem;
+  padding: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--text);
+  background: var(--stage-bg);
+  border-bottom: 1px solid var(--coal-600);
+  overflow-wrap: anywhere;
+  overflow: auto;
+}
+.gallery-text::before { content: "\201C"; display: block; font-size: 2.5rem; line-height: 0.6; color: var(--amber); }
