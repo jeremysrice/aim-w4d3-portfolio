@@ -507,9 +507,20 @@
   const MB_TIMEOUT_MS = 10000;
   let mbInfo = {}; // release-group ID -> { date, editions, genres }
 
+  // A saved copy is only usable if it has an entry, in the expected shape, for every album.
+  function validMbData(data) {
+    return !!data && typeof data === "object" && Object.values(COVER_IDS).every((id) => {
+      const d = data[id];
+      return d && typeof d.date === "string" && typeof d.editions === "number" && Array.isArray(d.genres);
+    });
+  }
+
   async function fetchMusicBrainzAlbums() {
-    const cached = store.get(MB_CACHE_KEY, null);
-    if (cached && Date.now() - cached.savedAt < MB_CACHE_MS) return { data: cached.data, fromCache: true };
+    const saved = store.get(MB_CACHE_KEY, null);
+    const cached = saved && typeof saved.savedAt === "number" && validMbData(saved.data) ? saved : null;
+    // A savedAt in the future (clock set back) counts as expired, so the cache can't get stuck.
+    const age = cached ? Date.now() - cached.savedAt : -1;
+    if (cached && age >= 0 && age < MB_CACHE_MS) return { data: cached.data, fromCache: true };
 
     const query = Object.values(COVER_IDS).map((id) => "rgid:" + id).join(" OR ");
     const url = "https://musicbrainz.org/ws/2/release-group?fmt=json&limit=25&query=" + encodeURIComponent(query);
@@ -531,6 +542,8 @@
           genres: (rg.tags || []).filter((t) => t.count >= 2).sort((a, b) => b.count - a.count).slice(0, 3).map((t) => t.name)
         };
       }
+      // Don't save (or show) an empty or partial answer, e.g. while MusicBrainz's search index is rebuilding.
+      if (!validMbData(data)) throw new Error("MusicBrainz returned incomplete album data");
       store.set(MB_CACHE_KEY, { savedAt: Date.now(), data });
       return { data, fromCache: false };
     } catch (err) {
@@ -556,7 +569,7 @@
     if (!info) return "";
     const parts = [];
     if (info.date) parts.push("Released " + formatMbDate(info.date));
-    if (info.editions) parts.push(info.editions + " editions");
+    if (info.editions) parts.push(info.editions + (info.editions === 1 ? " edition" : " editions"));
     if (info.genres.length) parts.push(info.genres.join(", "));
     return escapeHTML(parts.join(" · "));
   }
