@@ -924,12 +924,12 @@
         return;
       }
       photoGrid.innerHTML = items.map(({ r, m }) => {
-        if (!photoUrls.has(r.id)) photoUrls.set(r.id, { thumb: URL.createObjectURL(r.thumb), full: URL.createObjectURL(r.full) });
+        const urls = urlsFor(r);
         const alt = `${m.name}'s first show: ${m.city}, ${m.year}`;
         return `
           <figure class="photo-item">
             <button class="photo-thumb" type="button" data-photo-id="${escapeHTML(m.id)}" aria-label="View full size: ${escapeHTML(alt)}">
-              <img src="${photoUrls.get(r.id).thumb}" alt="" loading="lazy" width="${r.thumbW}" height="${r.thumbH}">
+              <img src="${urls.thumb}" alt="" loading="lazy" width="${r.thumbW}" height="${r.thumbH}">
               <span class="photo-expand" aria-hidden="true">⤢</span>
             </button>
             <figcaption><strong>${escapeHTML(m.name)}</strong> · ${m.year}<br><span>${escapeHTML(m.city)}</span></figcaption>
@@ -937,14 +937,33 @@
       }).join("");
     }
 
+    // Object URLs for a stored photo, created once and reused.
+    function urlsFor(record) {
+      if (!photoUrls.has(record.id)) {
+        photoUrls.set(record.id, { thumb: URL.createObjectURL(record.thumb), full: URL.createObjectURL(record.full) });
+      }
+      return photoUrls.get(record.id);
+    }
+
     // "View photo" on a memory card and the thumbnails both open the full-size photo.
-    document.addEventListener("click", (e) => {
+    // If the photo section hasn't loaded yet, fetch this one photo directly.
+    document.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-photo-id]");
       if (!btn) return;
       const id = btn.dataset.photoId;
       const m = store.get(MEM_KEY, []).find((x) => x.id === id);
-      const urls = photoUrls.get(id);
-      if (!m || !urls) return;
+      if (!m) return;
+      let urls = photoUrls.get(id);
+      if (!urls) {
+        try {
+          const record = await PhotoStore.get(id);
+          if (record) urls = urlsFor(record);
+        } catch (err) { /* storage blocked: handled below */ }
+      }
+      if (!urls) {
+        setStatus(status, `The photo for ${m.name}'s memory isn't available in this browser.`, "error");
+        return;
+      }
       openLightbox(urls.full, `${m.name}'s first show: ${m.city}, ${m.year}`, btn);
     });
 
@@ -1001,7 +1020,11 @@
 
       const all = store.get(MEM_KEY, []);
       all.push({ id, name, year, city, tour: tourSel.value, story, photo: Boolean(file), likes: 0, created: Date.now() });
-      if (!store.set(MEM_KEY, all)) return setStatus(status, "Couldn't save. This browser's storage may be full.", "error");
+      if (!store.set(MEM_KEY, all)) {
+        // Don't leave an orphaned photo behind when the memory itself couldn't be saved.
+        if (file) { try { await PhotoStore.remove(id); } catch (err) { /* nothing more we can do */ } }
+        return setStatus(status, "Couldn't save. This browser's storage may be full.", "error");
+      }
       form.reset();
       setStatus(status, file ? "Your memory and photo have been pinned." : "Your memory has been pinned to the timeline.", "success");
       filter.value = "all";
@@ -1071,7 +1094,9 @@
     }));
     return {
       put: (record) => run("readwrite", (s) => s.put(record)),
-      getAll: () => run("readonly", (s) => s.getAll())
+      get: (id) => run("readonly", (s) => s.get(id)),
+      getAll: () => run("readonly", (s) => s.getAll()),
+      remove: (id) => run("readwrite", (s) => s.delete(id))
     };
   })();
 

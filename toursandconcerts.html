@@ -121,7 +121,7 @@
               <p class="form-note" id="mem-photo-hint">JPG, PNG or WebP. Large photos are resized to 1600 pixels on the longest side.</p>
               <button class="btn btn--small btn--ghost" type="button" id="mem-photo-clear" hidden>Remove photo</button>
             </div>
-            <p class="form-status" id="mem-status"></p>
+            <p class="form-status" id="mem-status" role="status" aria-live="polite"></p>
             <button class="btn" type="submit">Pin my memory</button>
           </form>
 
@@ -140,7 +140,7 @@
       <div class="container">
         <h2 class="section-title">First Show <span>Photos</span></h2>
         <p class="section-lead">Photos pinned with fans' first-show memories. Select any thumbnail to see it full size.</p>
-        <div class="photo-grid" id="memory-photo-grid" aria-live="polite"><p class="empty-state">Loading photos…</p></div>
+        <div class="photo-grid" id="memory-photo-grid"><p class="empty-state">Loading photos…</p></div>
       </div>
     </section>
 
@@ -173,7 +173,7 @@
               <label for="gal-caption">Caption</label>
               <input type="text" id="gal-caption" maxlength="120" placeholder="Hyde Park, 2013. Front row!">
             </div>
-            <p class="form-status" id="gal-status"></p>
+            <p class="form-status" id="gal-status" role="status" aria-live="polite"></p>
             <button class="btn" type="submit">Submit for review</button>
             <p class="form-note">Images are resized before saving. Submissions are kept in this browser.</p>
           </form>
@@ -199,7 +199,7 @@
               </div>
               <button class="btn btn--ghost" type="submit">Unlock</button>
             </form>
-            <p class="form-status" id="mod-status"></p>
+            <p class="form-status" id="mod-status" role="status" aria-live="polite"></p>
           </div>
           <div id="mod-unlocked" hidden>
             <p class="form-note"><span id="mod-count">0</span> pending submission(s). <button class="btn btn--small btn--ghost" type="button" id="mod-lock">Lock</button></p>
