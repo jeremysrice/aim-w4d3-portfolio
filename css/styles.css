@@ -545,7 +545,31 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .album-body p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 1rem; }
 .album-body h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--amber-text); margin: 0 0 0.4rem; }
 .track-list { margin: 0 0 1.25rem; padding-left: 1.2rem; font-size: 0.92rem; }
-.track-list li { margin-bottom: 0.15rem; }
+.track-list li { margin-bottom: 0.3rem; }
+.track-link {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--coal-500);
+  transition: color 0.2s, border-color 0.2s;
+}
+.track-link:hover,
+.track-link:focus-visible { color: var(--amber-text); border-bottom-color: var(--amber-text); }
+.track-note { color: var(--text-muted); font-size: 0.85em; }
+.track-spotify {
+  margin-left: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--coal-500);
+  border-radius: 99px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.track-spotify:hover,
+.track-spotify:focus-visible { color: var(--amber-text); border-color: var(--amber-text); }
 .album-links { margin-top: auto; display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .album-links a {
   font-size: 0.85rem;
@@ -730,3 +754,89 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 
 /* Gallery images open in the lightbox with a click, Enter or Space */
 .gallery-item img:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; }
+
+/* ---------- First-show photo upload box ---------- */
+
+.upload-box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  padding: 1rem;
+  border: 2px dashed var(--coal-500);
+  border-radius: var(--radius);
+  background: var(--coal-900);
+  color: var(--text-muted);
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s;
+}
+.upload-box:hover,
+.upload-box.is-dragging { border-color: var(--amber); background: var(--amber-dim); }
+.upload-box:focus-within { outline: 2px solid var(--amber); outline-offset: 2px; }
+.upload-box.has-file { border-style: solid; padding: 0.5rem; }
+/* The real file input stays in the page for keyboard and screen-reader users, just invisible. */
+.upload-box input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.upload-icon { display: block; font-size: 1.8rem; margin-bottom: 0.25rem; }
+.upload-prompt strong { color: var(--amber-text); }
+.upload-preview { max-height: 220px; width: auto; max-width: 100%; border-radius: 6px; object-fit: contain; }
+#mem-photo-clear { margin-top: 0.5rem; }
+
+/* ---------- First Show Photos: expandable thumbnails ---------- */
+
+.photo-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.photo-item { margin: 0; }
+.photo-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 1px solid var(--coal-600);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  cursor: zoom-in;
+}
+.photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.photo-thumb:hover img,
+.photo-thumb:focus-visible img { transform: scale(1.06); }
+.photo-thumb:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.photo-expand {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.photo-thumb:hover .photo-expand,
+.photo-thumb:focus-visible .photo-expand { opacity: 1; }
+.photo-item figcaption { margin-top: 0.45rem; font-size: 0.88rem; line-height: 1.4; }
+.photo-item figcaption span { color: var(--text-muted); }
+.lightbox img { max-width: min(100%, 1600px); }
+.photo-grid > .empty-state { grid-column: 1 / -1; }

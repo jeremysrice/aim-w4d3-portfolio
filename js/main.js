@@ -499,8 +499,24 @@
       alt="${escapeHTML(al.title)} album cover" width="250" height="250" loading="lazy" decoding="async">`;
   }
 
+  // Each key track links to YouTube (the official video when the song game has a verified one,
+  // otherwise a search) with a small secondary Spotify link.
+  function trackItem(track) {
+    const m = track.match(/^(.*?)\s*\((US edition)\)$/);
+    const name = m ? m[1] : track;
+    const note = m ? ` <span class="track-note">(${m[2]})</span>` : "";
+    const official = SONGS.find((s) => s.title.toLowerCase() === name.toLowerCase());
+    const ytHref = official ? `https://www.youtube.com/watch?v=${official.yt}` : ytSearch(name);
+    const ytTitle = official ? "Official video on YouTube" : "Search YouTube";
+    const safe = escapeHTML(name);
+    return `<li>
+      <a class="track-link" href="${ytHref}" target="_blank" rel="noopener" title="${ytTitle}">${safe}</a>${note}
+      <a class="track-spotify" href="${spotifySearch(name)}" target="_blank" rel="noopener" aria-label="${safe} on Spotify" title="Find on Spotify">Spotify</a>
+    </li>`;
+  }
+
   function albumCard(al) {
-    const tracks = al.tracks.map((t) => `<li>${escapeHTML(t)}</li>`).join("");
+    const tracks = al.tracks.map(trackItem).join("");
     return `
       <article class="album-card">
         <div class="album-art" style="--art: linear-gradient(135deg, ${al.art[0]}, ${al.art[1]})">
@@ -826,6 +842,7 @@
             </header>
             <p>${escapeHTML(m.story)}</p>
             <div class="pin-actions">
+              ${m.photo ? `<button class="btn btn--small btn--ghost" type="button" data-photo-id="${escapeHTML(m.id)}">📷 View photo</button>` : ""}
               <button class="btn btn--small btn--ghost" type="button" data-like="${escapeHTML(m.id)}"
                 aria-pressed="${isLiked}" ${isLiked ? "disabled" : ""}
                 aria-label="${isLiked ? "You liked this memory" : "Like this memory"} (${m.likes || 0} likes)">♥ ${m.likes || 0}</button>
@@ -834,6 +851,102 @@
       });
       timeline.innerHTML = html;
     }
+
+    /* ----- Photo upload box ----- */
+    const photoInput = $("#mem-photo");
+    const photoBox = $("#mem-photo-box");
+    const preview = $("#mem-photo-preview");
+    const prompt = $("#mem-photo-prompt");
+    const clearBtn = $("#mem-photo-clear");
+    const photoGrid = $("#memory-photo-grid");
+    let previewUrl = null;
+
+    function showPreview(file) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = file ? URL.createObjectURL(file) : null;
+      preview.hidden = !file;
+      prompt.hidden = Boolean(file);
+      clearBtn.hidden = !file;
+      photoBox.classList.toggle("has-file", Boolean(file));
+      if (file) { preview.src = previewUrl; preview.alt = `Selected photo: ${file.name}`; }
+      else preview.removeAttribute("src");
+    }
+
+    function validPhoto(file) {
+      if (!file.type.startsWith("image/")) return "That file isn't an image. Choose a JPG, PNG or WebP.";
+      if (file.size > PHOTO_MAX_UPLOAD_MB * 1024 * 1024) return `That photo is over ${PHOTO_MAX_UPLOAD_MB} MB.`;
+      return "";
+    }
+
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files[0];
+      if (file) {
+        const problem = validPhoto(file);
+        if (problem) { photoInput.value = ""; showPreview(null); return setStatus(status, problem, "error"); }
+        setStatus(status, "");
+      }
+      showPreview(file || null);
+    });
+    clearBtn.addEventListener("click", () => { photoInput.value = ""; showPreview(null); photoInput.focus(); });
+    form.addEventListener("reset", () => showPreview(null));
+
+    // Drag and drop onto the box
+    ["dragenter", "dragover"].forEach((t) => photoBox.addEventListener(t, (e) => {
+      e.preventDefault(); photoBox.classList.add("is-dragging");
+    }));
+    ["dragleave", "drop"].forEach((t) => photoBox.addEventListener(t, () => photoBox.classList.remove("is-dragging")));
+    photoBox.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      photoInput.files = dt.files;
+      photoInput.dispatchEvent(new Event("change"));
+    });
+
+    /* ----- First Show Photos section (thumbnails that expand in the lightbox) ----- */
+    const photoUrls = new Map(); // memory id -> { thumb, full } object URLs, created once per photo
+
+    async function renderPhotos() {
+      if (!photoGrid) return;
+      let records = [];
+      try { records = await PhotoStore.getAll(); } catch (e) {
+        photoGrid.innerHTML = '<p class="empty-state">Photos can\'t be shown because this browser blocks local storage.</p>';
+        return;
+      }
+      const memories = new Map(store.get(MEM_KEY, []).map((m) => [m.id, m]));
+      const items = records.filter((r) => memories.has(r.id))
+        .map((r) => ({ r, m: memories.get(r.id) }))
+        .sort((a, b) => a.m.year - b.m.year || a.m.created - b.m.created);
+      if (!items.length) {
+        photoGrid.innerHTML = '<p class="empty-state">No photos yet. Add one to your first-show memory above.</p>';
+        return;
+      }
+      photoGrid.innerHTML = items.map(({ r, m }) => {
+        if (!photoUrls.has(r.id)) photoUrls.set(r.id, { thumb: URL.createObjectURL(r.thumb), full: URL.createObjectURL(r.full) });
+        const alt = `${m.name}'s first show: ${m.city}, ${m.year}`;
+        return `
+          <figure class="photo-item">
+            <button class="photo-thumb" type="button" data-photo-id="${escapeHTML(m.id)}" aria-label="View full size: ${escapeHTML(alt)}">
+              <img src="${photoUrls.get(r.id).thumb}" alt="" loading="lazy" width="${r.thumbW}" height="${r.thumbH}">
+              <span class="photo-expand" aria-hidden="true">⤢</span>
+            </button>
+            <figcaption><strong>${escapeHTML(m.name)}</strong> · ${m.year}<br><span>${escapeHTML(m.city)}</span></figcaption>
+          </figure>`;
+      }).join("");
+    }
+
+    // "View photo" on a memory card and the thumbnails both open the full-size photo.
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-photo-id]");
+      if (!btn) return;
+      const id = btn.dataset.photoId;
+      const m = store.get(MEM_KEY, []).find((x) => x.id === id);
+      const urls = photoUrls.get(id);
+      if (!m || !urls) return;
+      openLightbox(urls.full, `${m.name}'s first show: ${m.city}, ${m.year}`, btn);
+    });
 
     timeline.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-like]");
@@ -851,28 +964,118 @@
       render();
     });
 
-    form.addEventListener("submit", (e) => {
+    const submitBtn = $('button[type="submit"]', form);
+    let busy = false; // ignore repeat submits while a photo is still being processed
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (busy) return;
+      busy = true;
+      try { await saveMemory(); } finally { busy = false; submitBtn.disabled = false; }
+    });
+
+    async function saveMemory() {
       const name = $("#mem-name").value.trim();
       const year = Number(yearInput.value);
       const city = $("#mem-city").value.trim();
       const story = $("#mem-story").value.trim();
+      const file = photoInput.files[0];
       if (!name || !city || !story) return setStatus(status, "Please fill in your name, city and story.", "error");
       if (!Number.isInteger(year) || year < 1962 || year > thisYear) return setStatus(status, `The year must be between 1962 and ${thisYear}.`, "error");
+      if (file && validPhoto(file)) return setStatus(status, validPhoto(file), "error");
+
+      const id = uid();
+      if (file) {
+        submitBtn.disabled = true;
+        setStatus(status, "Resizing your photo…");
+        try {
+          const img = await loadImageFile(file);
+          const [full, thumb] = await Promise.all([scaleToBlob(img, PHOTO_MAX, 0.85), scaleToBlob(img, THUMB_MAX, 0.8)]);
+          const s = Math.min(1, THUMB_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+          await PhotoStore.put({ id, full, thumb, thumbW: Math.round(img.naturalWidth * s), thumbH: Math.round(img.naturalHeight * s) });
+        } catch (err) {
+          return setStatus(status, err && err.message === "decode failed"
+            ? "That photo couldn't be read. Try a JPG or PNG."
+            : "Couldn't save the photo. This browser may be blocking or out of storage.", "error");
+        }
+      }
+
       const all = store.get(MEM_KEY, []);
-      all.push({ id: uid(), name, year, city, tour: tourSel.value, story, likes: 0, created: Date.now() });
+      all.push({ id, name, year, city, tour: tourSel.value, story, photo: Boolean(file), likes: 0, created: Date.now() });
       if (!store.set(MEM_KEY, all)) return setStatus(status, "Couldn't save. This browser's storage may be full.", "error");
       form.reset();
-      setStatus(status, "Your memory has been pinned to the timeline.", "success");
+      setStatus(status, file ? "Your memory and photo have been pinned." : "Your memory has been pinned to the timeline.", "success");
       filter.value = "all";
       render();
-    });
+      renderPhotos();
+    }
 
     filter.addEventListener("change", render);
     render();
+    renderPhotos();
   }
 
-  // Resize an uploaded image so it fits in localStorage.
+  /* ---------- First-show photos: resizing + IndexedDB storage ---------- */
+
+  const PHOTO_MAX = 1600;   // longest side of the stored full-size photo
+  const THUMB_MAX = 480;    // longest side of the grid thumbnail
+  const PHOTO_MAX_UPLOAD_MB = 25;
+
+  // Decode an image file into an <img>.
+  function loadImageFile(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode failed")); };
+      img.src = url;
+    });
+  }
+
+  // Scale an image down (never up) so its longest side is at most `max` pixels; returns a JPEG Blob.
+  function scaleToBlob(img, max, quality) {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const scale = Math.min(1, max / Math.max(w, h));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff"; // transparent PNGs get a white background instead of black
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/jpeg", quality));
+  }
+
+  // Photos are stored in IndexedDB rather than localStorage: a 1600px photo is a few hundred KB,
+  // and localStorage's ~5 MB limit would fill after a handful of them.
+  const PhotoStore = (() => {
+    const STORE = "memoryPhotos";
+    let dbPromise = null;
+    const open = () => {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        if (!("indexedDB" in window)) return reject(new Error("IndexedDB unavailable"));
+        const req = indexedDB.open("sfh", 1);
+        const timer = setTimeout(() => reject(new Error("IndexedDB timed out")), 8000);
+        req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: "id" });
+        req.onsuccess = () => { clearTimeout(timer); resolve(req.result); };
+        req.onerror = () => { clearTimeout(timer); reject(req.error); };
+      }).catch((err) => { dbPromise = null; throw err; });
+      return dbPromise;
+    };
+    const run = (mode, fn) => open().then((db) => new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, mode);
+      const req = fn(tx.objectStore(STORE));
+      tx.oncomplete = () => resolve(req ? req.result : undefined);
+      tx.onerror = tx.onabort = () => reject(tx.error);
+    }));
+    return {
+      put: (record) => run("readwrite", (s) => s.put(record)),
+      getAll: () => run("readonly", (s) => s.getAll())
+    };
+  })();
+
+  // Resize an uploaded fan-gallery image so it fits in localStorage.
   function resizeImage(file, maxSize = 900) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -900,8 +1103,6 @@
     const status = $("#gal-status");
     const approvedEl = $("#gallery-approved");
     const pendingEl = $("#gallery-pending");
-    const lightbox = $("#lightbox");
-    const lbImg = $("#lightbox-img");
     let filter = "all";
     let modUnlocked = sessionStorage.getItem("sfh_mod") === "1";
 
@@ -1002,38 +1203,51 @@
       render();
     });
 
-    // Lightbox: remembers what opened it and returns focus there on close.
-    let lbReturnFocus = null;
-    const openLb = (img) => {
-      lbReturnFocus = img;
-      lbImg.src = img.src;
-      lbImg.alt = img.alt;
-      lightbox.classList.add("is-open");
-      $("#lightbox-close").focus();
-    };
+    // Gallery images open in the shared lightbox with a click, Enter or Space.
     document.addEventListener("click", (e) => {
       const img = e.target.closest(".gallery-item img");
-      if (img) openLb(img);
+      if (img) openLightbox(img.src, img.alt, img);
     });
     document.addEventListener("keydown", (e) => {
       const img = e.target.closest && e.target.closest(".gallery-item img");
-      if (img && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openLb(img); }
+      if (img && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openLightbox(img.src, img.alt, img); }
     });
-    const closeLb = () => {
+
+    render();
+  }
+
+  /* ---------- Shared lightbox (fan gallery + first-show photos) ---------- */
+
+  let lbReturnFocus = null;
+
+  // Shows `src` full size; focus returns to `returnEl` when the lightbox closes.
+  function openLightbox(src, alt, returnEl) {
+    const lightbox = $("#lightbox");
+    if (!lightbox) return;
+    lbReturnFocus = returnEl || null;
+    const img = $("#lightbox-img");
+    img.src = src;
+    img.alt = alt || "";
+    lightbox.classList.add("is-open");
+    $("#lightbox-close").focus();
+  }
+
+  function initLightbox() {
+    const lightbox = $("#lightbox");
+    if (!lightbox) return;
+    const close = () => {
       if (!lightbox.classList.contains("is-open")) return;
       lightbox.classList.remove("is-open");
       if (lbReturnFocus && lbReturnFocus.isConnected) lbReturnFocus.focus();
       lbReturnFocus = null;
     };
-    $("#lightbox-close").addEventListener("click", closeLb);
-    lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLb(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLb(); });
+    $("#lightbox-close").addEventListener("click", close);
+    lightbox.addEventListener("click", (e) => { if (e.target === lightbox) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
     // Keep Tab inside the open lightbox (its only control is the Close button).
     lightbox.addEventListener("keydown", (e) => {
       if (e.key === "Tab") { e.preventDefault(); $("#lightbox-close").focus(); }
     });
-
-    render();
   }
 
   /* ---------- 404 page ---------- */
@@ -1099,6 +1313,7 @@
     initAlbums();
     initSongGame();
     initTours();
+    initLightbox();
     initMemories();
     initGallery();
     initNotFound();

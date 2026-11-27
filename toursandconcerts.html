@@ -108,6 +108,19 @@
               <label for="mem-story">Your story</label>
               <textarea id="mem-story" maxlength="800" required placeholder="The lights went down, then that opening riff..."></textarea>
             </div>
+            <div>
+              <label for="mem-photo">Photo from the show (optional)</label>
+              <label class="upload-box" for="mem-photo" id="mem-photo-box">
+                <input type="file" id="mem-photo" accept="image/*" aria-describedby="mem-photo-hint">
+                <img class="upload-preview" id="mem-photo-preview" alt="" hidden>
+                <span class="upload-prompt" id="mem-photo-prompt">
+                  <span class="upload-icon" aria-hidden="true">📷</span>
+                  <strong>Choose a photo</strong> or drag it here
+                </span>
+              </label>
+              <p class="form-note" id="mem-photo-hint">JPG, PNG or WebP. Large photos are resized to 1600 pixels on the longest side.</p>
+              <button class="btn btn--small btn--ghost" type="button" id="mem-photo-clear" hidden>Remove photo</button>
+            </div>
             <p class="form-status" id="mem-status"></p>
             <button class="btn" type="submit">Pin my memory</button>
           </form>
@@ -123,7 +136,15 @@
       </div>
     </section>
 
-    <section class="section" id="gallery">
+    <section class="section" id="memory-photos">
+      <div class="container">
+        <h2 class="section-title">First Show <span>Photos</span></h2>
+        <p class="section-lead">Photos pinned with fans' first-show memories. Select any thumbnail to see it full size.</p>
+        <div class="photo-grid" id="memory-photo-grid" aria-live="polite"><p class="empty-state">Loading photos…</p></div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="gallery">
       <div class="container">
         <h2 class="section-title">Fan <span>Gallery</span></h2>
         <p class="section-lead">Share your concert photos, fan art and Stones tattoos. A moderator reviews each submission before it appears in the gallery. Please only upload images you made or took yourself.</p>
