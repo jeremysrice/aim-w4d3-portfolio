@@ -1,0 +1,140 @@
+STONES FAN HUB - APIs USED
+==========================
+
+Project: aim-w4d3-portfolio
+Live site: https://jeremysrice.github.io/aim-w4d3-portfolio/
+
+None of these APIs needs an API key.
+
+
+1. OUTSIDE SERVICES THE LIVE SITE CALLS
+----------------------------------------
+
+YouTube embedded player (youtube-nocookie.com/embed/...)
+  Used for: Playing the official song videos in the Name That Song game.
+  Where: js/main.js, initSongGame
+
+Cover Art Archive (coverartarchive.org/release-group/{id}/front-250 and -500)
+  Used for: Album cover images on the Albums page.
+  Where: js/main.js, coverImg and COVER_IDS
+
+jsDelivr CDN (cdn.jsdelivr.net)
+  Used for: Loading the photo-screening libraries, pinned to exact
+  versions with integrity hashes.
+  Where: js/main.js, SCREEN_SCRIPTS
+
+TensorFlow.js 4.22.0 (library API)
+  Used for: Running the screening model in the visitor's browser.
+  Where: loaded from jsDelivr
+
+NSFWJS 4.4.0 with the MobileNetV2 model (library API: nsfwjs.load(), model.classify())
+  Used for: Checking uploaded images for nudity and sexual content in the
+  first-show memories photo box and the fan gallery.
+  Where: js/main.js, getScreener and screenPhoto
+
+The site also has plain links to Wikipedia, Spotify search, YouTube search
+and rollingstones.com. These open pages in a new tab; the site doesn't call
+them as APIs.
+
+
+2. BROWSER APIs (BUILT INTO EVERY MODERN BROWSER)
+--------------------------------------------------
+
+DOM API (querySelector, classList, addEventListener, setAttribute, etc.)
+  Used for: Every interactive feature on the site.
+
+Web Storage: localStorage
+  Used for: Theme choice, trivia leaderboard, best song-game score,
+  memories, likes and fan-gallery posts.
+
+Web Storage: sessionStorage
+  Used for: The moderator unlock, which is cleared when the tab closes.
+
+IndexedDB
+  Used for: Storing first-show photos and thumbnails, which are too big for
+  localStorage.
+
+File API (File, FileReader, DataTransfer)
+  Used for: Reading uploaded images and handling drag-and-drop.
+
+Blob and object URLs (URL.createObjectURL, URL.revokeObjectURL)
+  Used for: Upload previews and displaying stored photos.
+
+Canvas 2D (drawImage, toBlob, toDataURL)
+  Used for: Resizing photos to 1600px, 900px, and 480px thumbnails.
+
+Drag and Drop events
+  Used for: Dropping a photo onto the memories upload box.
+
+matchMedia
+  Used for: Respecting the visitor's "reduce motion" setting.
+
+View Transitions (CSS @view-transition, CSSViewTransitionRule detection)
+  Used for: Page transition animations between pages.
+
+storage event
+  Used for: Keeping the dark/light theme in sync across open tabs.
+
+pageshow event
+  Used for: Resetting the page fade when you come back with the Back button.
+
+requestAnimationFrame and scrollTo({ behavior: "smooth" })
+  Used for: The back-to-top button.
+
+setTimeout and setInterval
+  Used for: The trivia timer and loading timeouts.
+
+URL constructor
+  Used for: Telling same-site links from external ones in the
+  page-transition fallback.
+
+Intl date formatting (toLocaleDateString)
+  Used for: Showing tour dates and leaderboard dates in the visitor's
+  local format.
+
+Subresource Integrity (integrity and crossOrigin attributes)
+  Used for: Making the browser reject tampered CDN files.
+
+ARIA (aria-expanded, aria-pressed, role="status", aria-live, etc.)
+  Used for: Screen-reader support.
+
+
+3. APIs I USED WHILE BUILDING THE SITE (THE SITE DOESN'T CALL THESE)
+-----------------------------------------------------------------
+
+YouTube oEmbed (youtube.com/oembed)
+  Used for: Confirming each song-game video ID is real, embeddable and from
+  an official channel.
+
+YouTube search results page
+  Used for: Finding candidate official video IDs. The public results page
+  was fetched, then each ID was confirmed with oEmbed.
+
+MusicBrainz Web Service (musicbrainz.org/ws/2)
+  Used for: Looking up the database IDs for all 24 studio albums.
+
+Cover Art Archive
+  Used for: Confirming every album had a front cover before using it.
+
+MediaWiki API (Wikipedia and Wikimedia Commons)
+  Used for: Finding the tongue-logo file and checking its licence, and
+  checking that the album Wikipedia links work.
+
+GitHub REST API (through the gh command-line tool)
+  Used for: Creating the repository, turning on GitHub Pages and checking
+  deploys.
+
+npm registry and jsDelivr data API
+  Used for: Finding current library versions and file lists for the
+  photo-screening setup.
+
+Web search
+  Used for: Researching the Rolling Stones tongue-logo red colour code.
+
+
+PRIVACY NOTE
+------------
+All the services the live site calls are free and public. Visitors'
+photos go only to the browser's own storage. They're never sent to any of
+these services, including the screening, which runs on the visitor's
+device.
