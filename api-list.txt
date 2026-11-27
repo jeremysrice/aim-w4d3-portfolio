@@ -6,6 +6,11 @@ Live site: https://jeremysrice.github.io/aim-w4d3-portfolio/
 
 None of these APIs needs an API key.
 
+Rate limits were checked in November 2026 against each provider's own
+documentation where it exists. Providers change these, so check the
+source before relying on a number. "Unpublished" means the provider
+doesn't state a limit but may still block heavy use.
+
 
 1. OUTSIDE SERVICES THE LIVE SITE CALLS
 ----------------------------------------
@@ -13,90 +18,127 @@ None of these APIs needs an API key.
 YouTube embedded player (youtube-nocookie.com/embed/...)
   Used for: Playing the official song videos in the Name That Song game.
   Where: js/main.js, initSongGame
+  Rate limit: Unpublished. Each visitor's browser loads the player directly,
+  so traffic is spread across visitors. It doesn't use the YouTube Data API,
+  so the Data API's 10,000 units/day quota doesn't apply.
 
 Cover Art Archive (coverartarchive.org/release-group/{id}/front-250 and -500)
   Used for: Album cover images on the Albums page.
   Where: js/main.js, coverImg and COVER_IDS
+  Rate limit: The official docs say "no rate limiting rules in place", but
+  the API can return HTTP 503 to users who exceed a limit. The site loads
+  at most 24 covers per page view, lazily, from each visitor's browser.
 
 jsDelivr CDN (cdn.jsdelivr.net)
   Used for: Loading the photo-screening libraries, pinned to exact
   versions with integrity hashes.
   Where: js/main.js, SCREEN_SCRIPTS
+  Rate limit: No published limit for serving package files. The files are
+  loaded once per visitor, only when they pick a photo, then cached by
+  the browser.
 
 TensorFlow.js 4.22.0 (library API)
   Used for: Running the screening model in the visitor's browser.
   Where: loaded from jsDelivr
+  Rate limit: None. It runs on the visitor's device; only the download
+  comes from jsDelivr (see above).
 
 NSFWJS 4.4.0 with the MobileNetV2 model (library API: nsfwjs.load(), model.classify())
   Used for: Checking uploaded images for nudity and sexual content in the
   first-show memories photo box and the fan gallery.
   Where: js/main.js, getScreener and screenPhoto
+  Rate limit: None. It runs on the visitor's device; only the download
+  comes from jsDelivr (see above).
 
 The site also has plain links to Wikipedia, Spotify search, YouTube search
 and rollingstones.com. These open pages in a new tab; the site doesn't call
-them as APIs.
+them as APIs, so their rate limits don't apply.
 
 
 2. BROWSER APIs (BUILT INTO EVERY MODERN BROWSER)
 --------------------------------------------------
 
+None of these has a rate limit; they run locally in the browser. Where
+there is a limit, it's a storage quota, noted below.
+
 DOM API (querySelector, classList, addEventListener, setAttribute, etc.)
   Used for: Every interactive feature on the site.
+  Rate limit: None.
 
 Web Storage: localStorage
   Used for: Theme choice, trivia leaderboard, best song-game score,
   memories, likes and fan-gallery posts.
+  Rate limit: None. Quota: about 5 MB per site in most browsers.
 
 Web Storage: sessionStorage
   Used for: The moderator unlock, which is cleared when the tab closes.
+  Rate limit: None. Quota: about 5 MB per site, per tab.
 
 IndexedDB
   Used for: Storing first-show photos and thumbnails, which are too big for
   localStorage.
+  Rate limit: None. Quota: a share of free disk space, set by the browser
+  (often hundreds of MB or more).
 
 File API (File, FileReader, DataTransfer)
   Used for: Reading uploaded images and handling drag-and-drop.
+  Rate limit: None. The site caps uploads at 25 MB per photo.
 
 Blob and object URLs (URL.createObjectURL, URL.revokeObjectURL)
   Used for: Upload previews and displaying stored photos.
+  Rate limit: None. Limited only by the device's memory.
 
 Canvas 2D (drawImage, toBlob, toDataURL)
   Used for: Resizing photos to 1600px, 900px, and 480px thumbnails.
+  Rate limit: None. Browsers cap the maximum canvas size, which these
+  sizes are well under.
 
 Drag and Drop events
   Used for: Dropping a photo onto the memories upload box.
+  Rate limit: None.
 
 matchMedia
   Used for: Respecting the visitor's "reduce motion" setting.
+  Rate limit: None.
 
 View Transitions (CSS @view-transition, CSSViewTransitionRule detection)
   Used for: Page transition animations between pages.
+  Rate limit: None.
 
 storage event
   Used for: Keeping the dark/light theme in sync across open tabs.
+  Rate limit: None.
 
 pageshow event
   Used for: Resetting the page fade when you come back with the Back button.
+  Rate limit: None.
 
 requestAnimationFrame and scrollTo({ behavior: "smooth" })
   Used for: The back-to-top button.
+  Rate limit: None. requestAnimationFrame runs at most once per screen
+  refresh.
 
 setTimeout and setInterval
   Used for: The trivia timer and loading timeouts.
+  Rate limit: None. Browsers slow timers down in background tabs.
 
 URL constructor
   Used for: Telling same-site links from external ones in the
   page-transition fallback.
+  Rate limit: None.
 
 Intl date formatting (toLocaleDateString)
   Used for: Showing tour dates and leaderboard dates in the visitor's
   local format.
+  Rate limit: None.
 
 Subresource Integrity (integrity and crossOrigin attributes)
   Used for: Making the browser reject tampered CDN files.
+  Rate limit: None.
 
 ARIA (aria-expanded, aria-pressed, role="status", aria-live, etc.)
   Used for: Screen-reader support.
+  Rate limit: None.
 
 
 3. APIs I USED WHILE BUILDING THE SITE (THE SITE DOESN'T CALL THESE)
@@ -105,31 +147,56 @@ ARIA (aria-expanded, aria-pressed, role="status", aria-live, etc.)
 YouTube oEmbed (youtube.com/oembed)
   Used for: Confirming each song-game video ID is real, embeddable and from
   an official channel.
+  Rate limit: Unpublished. Heavy use can get HTTP 429 (Too Many Requests).
 
 YouTube search results page
   Used for: Finding candidate official video IDs. The public results page
   was fetched, then each ID was confirmed with oEmbed.
+  Rate limit: Unpublished. Heavy use can get HTTP 429 or a captcha.
 
 MusicBrainz Web Service (musicbrainz.org/ws/2)
   Used for: Looking up the database IDs for all 24 studio albums.
+  Rate limit: An average of 1 request per second per IP address. Faster
+  than that and all requests get HTTP 503 until the rate drops. Every
+  request must send a User-Agent that identifies the app.
 
 Cover Art Archive
   Used for: Confirming every album had a front cover before using it.
+  Rate limit: Same as in section 1: officially no rate limiting rules, but
+  it can return HTTP 503 to users who exceed a limit.
 
 MediaWiki API (Wikipedia and Wikimedia Commons)
   Used for: Finding the tongue-logo file and checking its licence, and
   checking that the album Wikipedia links work.
+  Rate limit: Wikimedia started enforcing limits in 2026 and says they may
+  still change. Early announcements put anonymous use in the hundreds of
+  requests per hour, and signed-in use in the thousands. The API
+  etiquette is to send one request at a time and identify your app
+  with a User-Agent. Over the limit returns HTTP 429.
 
 GitHub REST API (through the gh command-line tool)
   Used for: Creating the repository, turning on GitHub Pages and checking
   deploys.
+  Rate limit: 5,000 requests per hour when signed in, which is how gh is
+  used here. 60 per hour per IP address without signing in. The search
+  endpoints have lower limits. There are also secondary limits on bursts
+  of requests.
 
 npm registry and jsDelivr data API
   Used for: Finding current library versions and file lists for the
   photo-screening setup.
+  Rate limit:
+    - npm registry: no published per-second limit. Heavy use gets HTTP
+      429. An older npm guideline called up to 5 million requests a
+      month acceptable.
+    - jsDelivr data API: officially no rate limit. jsDelivr asks you to
+      contact them before running 100+ requests per minute for long
+      periods.
 
 Web search
   Used for: Researching the Rolling Stones tongue-logo red colour code.
+  Rate limit: Not applicable. The search was done through Claude Code's
+  search tool, not a public API.
 
 
 PRIVACY NOTE
@@ -138,3 +205,13 @@ All the services the live site calls are free and public. Visitors'
 photos go only to the browser's own storage. They're never sent to any of
 these services, including the screening, which runs on the visitor's
 device.
+
+
+SOURCES FOR RATE LIMITS
+-----------------------
+MusicBrainz:      https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting
+Cover Art Archive: https://musicbrainz.org/doc/Cover_Art_Archive/API
+jsDelivr:         https://github.com/jsdelivr/data.jsdelivr.com
+Wikimedia:        https://www.mediawiki.org/wiki/Wikimedia_APIs/Rate_limits
+GitHub:           https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
+npm:              https://blog.npmjs.org/post/187698412060/acceptible-use
