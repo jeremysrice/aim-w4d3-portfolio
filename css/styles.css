@@ -755,18 +755,24 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
 
 /* ---------- 404 ---------- */
 
-.not-found { min-height: calc(100vh - 64px - 120px); display: grid; align-items: center; }
+/* The 404 page uses the same .page-hero header and .section layout as the inner pages. */
+.page-hero .not-found-path { margin-top: 0.75rem; }
+.not-found-path code { color: var(--amber-text); word-break: break-all; }
+.not-found-body { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(1.5rem, 5vw, 4rem); }
+.not-found-body .hero-actions { margin-top: 0; }
 .not-found-code {
-  font-size: clamp(6rem, 22vw, 12rem);
+  display: flex;
+  align-items: center;
+  gap: 0.05em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(5rem, 16vw, 9rem);
   line-height: 1;
-  margin-bottom: 0.25rem;
   letter-spacing: -0.04em;
+  color: var(--text);
 }
-.not-found-code { display: flex; align-items: center; gap: 0.05em; }
 .not-found-logo { height: 0.85em; width: auto; margin: 0 0.04em; transform: rotate(-6deg); }
-.not-found h2 { font-size: clamp(1.5rem, 3.5vw, 2.2rem); }
-.not-found h2 em { color: var(--amber); }
-.not-found #missing-path code { color: var(--amber-text); word-break: break-all; }
 
 /* ---------- Back to top ---------- */
 

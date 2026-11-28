@@ -30,8 +30,9 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="hero not-found">
-      <div class="container hero-inner">
+    <!-- Same header block as the Albums and Tours & Concerts pages. -->
+    <section class="page-hero">
+      <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
           <ol itemscope itemtype="https://schema.org/BreadcrumbList">
             <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
@@ -44,15 +45,24 @@
             </li>
           </ol>
         </nav>
-        <p class="hero-eyebrow">Error 404</p>
-        <h1 class="not-found-code">4<img class="not-found-logo" src="/aim-w4d3-portfolio/images/tongue-logo.svg" alt="0">4</h1>
-        <h2>You can't always get <em>what you want</em>.</h2>
+        <h1>You can't always get <span>what you want!</span></h1>
         <p>The page you were looking for isn't here. It may have moved, or the link has a typo.</p>
-        <p class="form-note" id="missing-path"></p>
-        <div class="hero-actions">
-          <a class="btn" href="/aim-w4d3-portfolio/index.html">Back to the homepage</a>
-          <a class="btn btn--ghost" href="/aim-w4d3-portfolio/albums.html">Browse the albums</a>
-          <a class="btn btn--ghost" href="/aim-w4d3-portfolio/toursandconcerts.html">See the tours</a>
+        <p class="form-note not-found-path" id="missing-path"></p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container not-found-body">
+        <!-- Reads as "404": the tongue logo stands in for the 0. -->
+        <p class="not-found-code">4<img class="not-found-logo" src="/aim-w4d3-portfolio/images/tongue-logo.svg" alt="0">4</p>
+        <div>
+          <h2 class="section-title">Where <span>to next?</span></h2>
+          <p class="section-lead">Head back to the homepage, or pick up where the music is.</p>
+          <div class="hero-actions">
+            <a class="btn" href="/aim-w4d3-portfolio/index.html">Back to the homepage</a>
+            <a class="btn btn--ghost" href="/aim-w4d3-portfolio/albums.html">Browse the albums</a>
+            <a class="btn btn--ghost" href="/aim-w4d3-portfolio/toursandconcerts.html">See the tours</a>
+          </div>
         </div>
       </div>
     </section>
@@ -63,6 +73,7 @@
       <img class="footer-logo" src="/aim-w4d3-portfolio/images/tongue-logo.svg" alt="The Rolling Stones tongue and lips logo" width="44" height="51">
       <p>Stones Fan Hub is an unofficial, non-commercial fan site. It is not affiliated with The Rolling Stones or their labels.</p>
       <p>The tongue and lips logo is a trademark of Musidor B.V. and appears here for identification only.</p>
+      <p>Official site: <a href="https://rollingstones.com" target="_blank" rel="noopener">rollingstones.com</a></p>
     </div>
   </footer>
 
