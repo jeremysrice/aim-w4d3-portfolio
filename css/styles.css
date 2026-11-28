@@ -95,7 +95,7 @@ main { flex: 1; }
 
 img { max-width: 100%; display: block; }
 
-a { color: var(--amber-text); }
+a { color: var(--amber-text); transition: color 0.2s; }
 a:hover { color: var(--amber-soft); }
 
 h1, h2, h3 {
@@ -242,7 +242,9 @@ h1, h2, h3 {
   border-radius: 6px;
   padding: 0.55rem 0.6rem;
   cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
 }
+.nav-toggle:hover { border-color: var(--amber); background: var(--amber-dim); }
 .nav-toggle-bar {
   display: block;
   width: 22px;
@@ -293,16 +295,16 @@ h1, h2, h3 {
   cursor: pointer;
   transition: background 0.2s, color 0.2s, transform 0.1s;
 }
-.btn:hover { background: var(--amber-soft); color: var(--on-amber); }
+.btn:hover:not(:disabled) { background: var(--amber-soft); color: var(--on-amber); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn--ghost { background: transparent; color: var(--amber-text); }
-.btn--ghost:hover { background: var(--amber-dim); color: var(--amber-soft); }
+.btn--ghost:hover:not(:disabled) { background: var(--amber-dim); color: var(--amber-soft); }
 
 .btn--small { padding: 0.4rem 0.9rem; font-size: 0.9rem; }
 .btn--danger { background: transparent; border-color: var(--danger); color: var(--danger); }
-.btn--danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+.btn--danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
 
 .form-grid { display: grid; gap: 1rem; }
 .form-row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
@@ -321,7 +323,21 @@ textarea {
   background: var(--coal-900);
   color: var(--text);
   font: inherit;
+  transition: border-color 0.2s;
 }
+input:hover, select:hover, textarea:hover { border-color: var(--text-muted); }
+input[type="file"]::file-selector-button {
+  margin-right: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 99px;
+  border: 1px solid var(--coal-500);
+  background: var(--coal-700);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+input[type="file"]:hover::file-selector-button { border-color: var(--amber); background: var(--amber-dim); }
 textarea { min-height: 110px; resize: vertical; }
 input:focus, select:focus, textarea:focus { border-color: var(--amber); outline: none; }
 
@@ -570,6 +586,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   border-radius: 99px;
   white-space: nowrap;
   vertical-align: 1px;
+  transition: color 0.2s, border-color 0.2s;
 }
 .track-spotify:hover,
 .track-spotify:focus-visible { color: var(--amber-text); border-color: var(--amber-text); }
@@ -580,8 +597,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   border-radius: 99px;
   border: 1px solid var(--coal-500);
   text-decoration: none;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
-.album-links a:hover { border-color: var(--amber); }
+.album-links a:hover { border-color: var(--amber); background: var(--amber-dim); }
 
 /* ---------- Song game ---------- */
 
@@ -616,7 +634,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   color: var(--text-muted);
   font: inherit;
   cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
+.tab:hover:not([aria-selected="true"]):not([aria-pressed="true"]) { color: var(--text); border-color: var(--amber); background: var(--amber-dim); }
 .tab[aria-selected="true"],
 .tab[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--on-amber); font-weight: 600; }
 
@@ -625,6 +645,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .tour-table th, .tour-table td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--coal-600); vertical-align: top; }
 .tour-table th { background: var(--coal-700); color: var(--amber-text); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
 .tour-table tr:last-child td { border-bottom: 0; }
+.tour-table tbody tr { transition: background 0.2s; }
 .tour-table tbody tr:hover { background: var(--coal-800); }
 .tour-table .muted { color: var(--text-muted); font-size: 0.88rem; }
 
@@ -651,7 +672,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 /* Fan gallery */
 .gallery-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .gallery-item { margin: 0; background: var(--coal-700); border: 1px solid var(--coal-600); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-.gallery-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; cursor: zoom-in; }
+.gallery-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; cursor: zoom-in; transition: filter 0.25s; }
+.gallery-item img:hover { filter: brightness(1.12) saturate(1.1); }
 .gallery-item figcaption { padding: 0.8rem 1rem; font-size: 0.9rem; }
 .gallery-item .cat { color: var(--amber-text); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
 .gallery-item .mod-actions { display: flex; gap: 0.5rem; padding: 0 1rem 1rem; }
