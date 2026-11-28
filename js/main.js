@@ -1571,8 +1571,24 @@
     ];
     const guess = guesses.find((g) => g.match.test(path));
     if (guess) {
-      el.innerHTML += ` · Did you mean <a href="/aim-w4d3-portfolio/${guess.href}">${guess.label}</a>?`;
+      // Relative link: 404.html sets a <base> pointing at the site root, so this works on GitHub Pages and locally.
+      el.innerHTML += ` · Did you mean <a href="${guess.href}">${guess.label}</a>?`;
     }
+  }
+
+  /* ---------- Skip link ---------- */
+
+  // Moves focus to the main content directly instead of following href="#main". That keeps it
+  // working on 404.html, whose <base> tag would otherwise send "#main" to the homepage.
+  function initSkipLink() {
+    const link = $(".skip-link");
+    const main = $("#main");
+    if (!link || !main) return;
+    link.addEventListener("click", (e) => {
+      e.preventDefault(); // also tells the page-transition code to leave this click alone
+      main.focus();
+      main.scrollIntoView();
+    });
   }
 
   /* ---------- Back to top ---------- */
@@ -1620,6 +1636,7 @@
     initMemories();
     initGallery();
     initNotFound();
+    initSkipLink();
     initBackToTop();
   });
 })();

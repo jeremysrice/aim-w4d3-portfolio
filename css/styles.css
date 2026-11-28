@@ -769,7 +769,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
 .not-found-body .hero-actions { margin-top: 0; }
 .not-found-code {
   display: flex;
-  align-items: center;
+  align-items: baseline; /* the logo sits on the same line as the 4s instead of floating above them */
   gap: 0.05em;
   margin: 0;
   font-family: var(--font-display);
@@ -779,7 +779,10 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
   letter-spacing: -0.04em;
   color: var(--text);
 }
-.not-found-logo { height: 0.85em; width: auto; margin: 0 0.04em; transform: rotate(-6deg); }
+/* Georgia uses old-style numerals: its "4" reaches 0.54em above the baseline and hangs 0.18em below it.
+   The logo (0.8em tall) sits on the baseline, so it's moved down 0.22em to centre it on the 4s' ink.
+   (A transform, because a flex item's margin doesn't shift where its baseline sits.) */
+.not-found-logo { height: 0.8em; width: auto; margin: 0 0.06em; transform: translateY(0.22em) rotate(-6deg); }
 
 /* ---------- Back to top ---------- */
 

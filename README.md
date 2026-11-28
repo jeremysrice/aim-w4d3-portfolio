@@ -43,7 +43,7 @@ python -m http.server 8000
 # then open http://localhost:8000
 ```
 
-`404.html` uses absolute `/aim-w4d3-portfolio/...` paths so it works for any missing URL on GitHub Pages. As a result, it only looks right when deployed. If you rename the repo, update those paths.
+`404.html` works both locally and on GitHub Pages. GitHub serves it for any missing URL, even nested ones like `/aim-w4d3-portfolio/a/b/c`, so a small script in its `<head>` adds a `<base>` tag pointing at the site root (`/aim-w4d3-portfolio/`) when deployed, or at its own folder otherwise. If you rename the repo, update the `site` value in that script.
 
 ## Editing content
 
