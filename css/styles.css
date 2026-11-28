@@ -209,7 +209,7 @@ h1, h2, h3 {
   color: var(--text-muted);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s, background 0.2s;
+  transition: color 0.2s, background 0.2s, translate 0.2s;
 }
 .nav-links a:hover { color: var(--text); background: var(--coal-700); }
 .nav-links a[aria-current="page"] {
@@ -230,7 +230,7 @@ h1, h2, h3 {
   font-size: 1.15rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 .theme-toggle:hover { border-color: var(--amber); background: var(--amber-dim); }
 
@@ -242,7 +242,7 @@ h1, h2, h3 {
   border-radius: 6px;
   padding: 0.55rem 0.6rem;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 .nav-toggle:hover { border-color: var(--amber); background: var(--amber-dim); }
 .nav-toggle-bar {
@@ -293,7 +293,7 @@ h1, h2, h3 {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, transform 0.1s;
+  transition: background 0.2s, color 0.2s, transform 0.1s, translate 0.2s, box-shadow 0.2s;
 }
 .btn:hover:not(:disabled) { background: var(--amber-soft); color: var(--on-amber); }
 .btn:active { transform: translateY(1px); }
@@ -335,7 +335,7 @@ input[type="file"]::file-selector-button {
   color: var(--text);
   font: inherit;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 input[type="file"]:hover::file-selector-button { border-color: var(--amber); background: var(--amber-dim); }
 textarea { min-height: 110px; resize: vertical; }
@@ -474,7 +474,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   color: var(--text);
   font: inherit;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 .option-btn:hover:not(:disabled) { border-color: var(--amber); background: var(--amber-dim); }
 .option-btn.is-correct { border-color: var(--success); background: color-mix(in srgb, var(--success) 15%, transparent); }
@@ -586,7 +586,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   border-radius: 99px;
   white-space: nowrap;
   vertical-align: 1px;
-  transition: color 0.2s, border-color 0.2s;
+  display: inline-block; /* inline boxes can't move, so the float on hover needs inline-block */
+  transition: color 0.2s, border-color 0.2s, translate 0.2s;
 }
 .track-spotify:hover,
 .track-spotify:focus-visible { color: var(--amber-text); border-color: var(--amber-text); }
@@ -597,7 +598,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   border-radius: 99px;
   border: 1px solid var(--coal-500);
   text-decoration: none;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 .album-links a:hover { border-color: var(--amber); background: var(--amber-dim); }
 
@@ -634,7 +635,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   color: var(--text-muted);
   font: inherit;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 .tab:hover:not([aria-selected="true"]):not([aria-pressed="true"]) { color: var(--text); border-color: var(--amber); background: var(--amber-dim); }
 .tab[aria-selected="true"],
@@ -694,7 +695,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 
 /* Fan gallery */
 .gallery-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-.gallery-item { margin: 0; background: var(--coal-700); border: 1px solid var(--coal-600); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+.gallery-item { margin: 0; background: var(--coal-700); border: 1px solid var(--coal-600); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: translate 0.2s, box-shadow 0.2s; }
 .gallery-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; cursor: zoom-in; transition: filter 0.25s; }
 .gallery-item img:hover { filter: brightness(1.12) saturate(1.1); }
 .gallery-item figcaption { padding: 0.8rem 1rem; font-size: 0.9rem; }
@@ -756,7 +757,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   opacity: 0;
   visibility: hidden;
   transform: translateY(12px);
-  transition: opacity 0.25s, transform 0.25s, visibility 0.25s, background 0.2s, color 0.2s;
+  transition: opacity 0.25s, transform 0.25s, visibility 0.25s, background 0.2s, color 0.2s, translate 0.2s;
 }
 .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
 .to-top:hover { background: var(--amber); color: var(--on-amber); }
@@ -795,7 +796,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   text-decoration: none;
   padding: 0.35rem 0.15rem;
   border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
+  transition: color 0.2s, border-color 0.2s, translate 0.2s;
 }
 .footer-nav a:hover { color: var(--amber-text); }
 .footer-nav a[aria-current="page"] { color: var(--amber-text); border-bottom-color: var(--amber); }
@@ -819,7 +820,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   text-align: center;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, translate 0.2s, box-shadow 0.2s;
 }
 .upload-box:hover,
 .upload-box.is-dragging { border-color: var(--amber); background: var(--amber-dim); }
@@ -857,6 +858,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   overflow: hidden;
   background: #000;
   cursor: zoom-in;
+  transition: translate 0.2s, box-shadow 0.2s;
 }
 .photo-thumb img {
   width: 100%;
@@ -915,3 +917,49 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   overflow: auto;
 }
 .gallery-text::before { content: "\201C"; display: block; font-size: 2.5rem; line-height: 0.6; color: var(--amber); }
+
+/* ---------- Float on hover ----------
+   Interactive elements lift slightly, with a soft shadow, when the pointer passes over them,
+   and settle back down when pressed. This uses the separate `translate` property so it
+   combines with transforms already in use (button press, back-to-top slide-in, photo zoom).
+   It only applies on devices with a real pointer, so a tap on a phone doesn't leave
+   something stuck in the air. */
+:root { --float-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
+:root[data-theme="light"] { --float-shadow: 0 6px 14px rgba(17, 17, 17, 0.18); }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled),
+  .option-btn:hover:not(:disabled),
+  .tab:hover:not([aria-selected="true"]):not([aria-pressed="true"]),
+  .theme-toggle:hover,
+  .nav-toggle:hover,
+  .album-links a:hover,
+  .photo-thumb:hover,
+  .upload-box:hover { translate: 0 -3px; box-shadow: var(--float-shadow); }
+
+  /* Kept in separate rules: if a browser doesn't support a selector, it drops the whole rule. */
+  input[type="file"]:hover::file-selector-button { translate: 0 -2px; box-shadow: var(--float-shadow); }
+  .gallery-item:has(> img:hover) { translate: 0 -3px; box-shadow: var(--float-shadow); }
+
+  /* Already has a large shadow, so it only lifts. */
+  .to-top.is-visible:hover { translate: 0 -3px; }
+
+  /* Text-style links float a little less. */
+  .nav-links a:hover:not([aria-current="page"]),
+  .footer-nav a:hover,
+  .track-spotify:hover { translate: 0 -2px; }
+
+  /* Pressing pushes the element back down. */
+  .btn:active:not(:disabled),
+  .option-btn:active:not(:disabled),
+  .tab:active,
+  .theme-toggle:active,
+  .nav-toggle:active,
+  .album-links a:active,
+  .to-top.is-visible:active { translate: 0 0; box-shadow: none; }
+}
+
+/* Visitors who ask for less motion get the shadow and colour change, but nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { translate: none !important; }
+}
