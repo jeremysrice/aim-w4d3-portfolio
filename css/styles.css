@@ -9,6 +9,8 @@
   --coal-700: #1c1c21;
   --coal-600: #26262d;
   --coal-500: #34343d;
+  --field-border: #6b6b75;       /* form field outlines: 3.2:1+ on every background (WCAG 1.4.11 needs 3:1) */
+  --placeholder: #8a8a93;        /* example text in empty fields: 5.63:1 on the field (needs 4.5:1) */
   --text: #ece8e1;
   --text-muted: #a9a39a;
   --amber: #f5a623;
@@ -48,6 +50,8 @@
   --coal-700: #cddff3;           /* cards and table headers: a deeper blue so they stand off the page (text 13.9:1, red 5.4:1) */
   --coal-600: #a8a8a8;           /* borders and dividers */
   --coal-500: #6e6e6e;           /* input and control outlines */
+  --field-border: #6e6e6e;       /* form field outlines (3.75:1+, already passing) */
+  --placeholder: #5f6368;        /* example text in empty fields: 5.26:1 on the field */
   --text: #111111;
   --text-muted: #363636;
   /* Accent: the tongue-logo red (#ee1c25), a hair darker so white button text meets the
@@ -340,7 +344,7 @@ textarea {
   width: 100%;
   padding: 0.65rem 0.8rem;
   border-radius: 8px;
-  border: 1px solid var(--coal-500);
+  border: 1px solid var(--field-border);
   background: var(--coal-900);
   color: var(--text);
   font: inherit;
@@ -360,6 +364,8 @@ input[type="file"]::file-selector-button {
 }
 input[type="file"]:hover::file-selector-button { border-color: var(--amber); background: var(--amber-dim); }
 textarea { min-height: 110px; resize: vertical; }
+/* Example text in empty fields ("1981", "Try 'Wild Horses'…"): the browser's default grey is under 4.5:1. */
+::placeholder { color: var(--placeholder); opacity: 1; }
 /* Focused fields keep the site-wide focus ring (from :focus-visible) as well as a red/amber border. */
 input:focus, select:focus, textarea:focus { border-color: var(--amber); }
 input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { outline: 2px solid var(--amber); outline-offset: 1px; }
