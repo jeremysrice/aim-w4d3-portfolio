@@ -157,19 +157,18 @@
               <label for="gal-name">Your name</label>
               <input type="text" id="gal-name" maxlength="40" required>
             </div>
-            <div class="form-row">
-              <div>
-                <label for="gal-cat">Category</label>
-                <select id="gal-cat" required>
-                  <option value="Concert photo">Concert photo</option>
-                  <option value="Fan art">Fan art</option>
-                  <option value="Tattoo">Tattoo</option>
-                </select>
-              </div>
-              <div>
-                <label for="gal-file">Image (optional)</label>
-                <input type="file" id="gal-file" accept="image/*">
-              </div>
+            <div>
+              <label for="gal-cat">Category</label>
+              <select id="gal-cat" required>
+                <option value="Concert photo">Concert photo</option>
+                <option value="Fan art">Fan art</option>
+                <option value="Tattoo">Tattoo</option>
+              </select>
+            </div>
+            <!-- Full width, so the file picker's "No file chosen" text isn't cut off. -->
+            <div>
+              <label for="gal-file">Image (optional)</label>
+              <input type="file" id="gal-file" accept="image/*">
             </div>
             <div>
               <label for="gal-caption">Caption <span class="form-note">(required if you don't add an image)</span></label>
@@ -192,7 +191,7 @@
         </div>
 
         <div class="card mod-panel" id="mod-panel">
-          <h3>Moderator <span>Queue</span></h3>
+          <h3 id="mod-title" tabindex="-1">Moderator <span>Queue</span></h3>
           <div id="mod-locked">
             <form class="mod-login" id="mod-login">
               <div>

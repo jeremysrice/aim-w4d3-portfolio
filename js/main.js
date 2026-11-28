@@ -339,7 +339,11 @@
     });
 
     $("#quiz-start-btn").addEventListener("click", start);
-    $("#quiz-restart").addEventListener("click", start);
+    // "Play again" returns to the start screen so the player can switch relaxed mode on or off.
+    $("#quiz-restart").addEventListener("click", () => {
+      els.end.hidden = true; els.play.hidden = true; els.start.hidden = false;
+      $("#quiz-start-btn").focus();
+    });
 
     els.form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -952,7 +956,7 @@
             <div class="pin-actions">
               ${m.photo ? `<button class="btn btn--small btn--ghost" type="button" data-photo-id="${escapeHTML(m.id)}">📷 View photo</button>` : ""}
               <button class="btn btn--small btn--ghost" type="button" data-like="${escapeHTML(m.id)}"
-                aria-pressed="${isLiked}" ${isLiked ? "disabled" : ""}
+                aria-pressed="${isLiked}" ${isLiked ? 'aria-disabled="true"' : ""}
                 aria-label="${isLiked ? "You liked this memory" : "Like this memory"} (${m.likes || 0} likes)">♥ ${m.likes || 0}</button>
             </div>
           </article>`;
@@ -1093,7 +1097,8 @@
 
     timeline.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-like]");
-      if (!btn || btn.disabled) return;
+      // A liked button uses aria-disabled (not disabled) so it can keep keyboard focus after the redraw.
+      if (!btn || btn.getAttribute("aria-disabled") === "true") return;
       const id = btn.dataset.like;
       const liked = store.get(LIKED_KEY, []);
       if (liked.includes(id)) return;
@@ -1105,6 +1110,9 @@
       store.set(MEM_KEY, all);
       store.set(LIKED_KEY, liked);
       render();
+      // The list was redrawn, replacing the button that had focus: put focus back on it.
+      const again = timeline.querySelector(`[data-like="${CSS.escape(id)}"]`);
+      if (again) again.focus();
     });
 
     const submitBtn = $('button[type="submit"]', form);
@@ -1482,6 +1490,8 @@
       const ap = e.target.closest("[data-approve]");
       const rj = e.target.closest("[data-reject]");
       if (!ap && !rj) return;
+      // Remember this post's place in the queue, so focus can move to the next one after the redraw.
+      const queuePos = $$("[data-approve]", pendingEl).indexOf(ap || rj.parentElement.querySelector("[data-approve]"));
       let all = store.get(GAL_KEY, []);
       if (ap) {
         const g = all.find((x) => x.id === ap.dataset.approve);
@@ -1491,6 +1501,10 @@
       }
       store.set(GAL_KEY, all);
       render();
+      // The handled post is gone from the queue: focus the next one (or the last), or the heading if it's empty.
+      const left = $$("[data-approve]", pendingEl);
+      if (left.length) left[Math.min(Math.max(queuePos, 0), left.length - 1)].focus();
+      else $("#mod-title").focus();
     });
 
     // Gallery images open in the shared lightbox. They sit inside real buttons,

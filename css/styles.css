@@ -320,16 +320,17 @@ h1, h2, h3 {
   cursor: pointer;
   transition: background 0.2s, color 0.2s, transform 0.1s, translate 0.2s, box-shadow 0.2s;
 }
-.btn:hover:not(:disabled) { background: var(--amber-soft); color: var(--on-amber); }
+.btn:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--amber-soft); color: var(--on-amber); }
 .btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled,
+.btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 
 .btn--ghost { background: transparent; color: var(--amber-text); }
-.btn--ghost:hover:not(:disabled) { background: var(--amber-dim); color: var(--amber-soft); }
+.btn--ghost:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--amber-dim); color: var(--amber-soft); }
 
 .btn--small { padding: 0.4rem 0.9rem; font-size: 0.9rem; }
 .btn--danger { background: transparent; border-color: var(--danger); color: var(--danger); }
-.btn--danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+.btn--danger:hover:not(:disabled):not([aria-disabled="true"]) { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
 
 .form-grid { display: grid; gap: 1rem; }
 .form-row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
@@ -847,7 +848,17 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
 .footer-nav a[aria-current="page"] { color: var(--amber-text); border-bottom-color: var(--amber); }
 
 /* Gallery images open in the lightbox with a click, Enter or Space */
-.gallery-open:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; }
+/* Focus ring drawn as a layer above the picture (an inset outline would be painted over by the image,
+   and an outside one is clipped by the card). */
+.gallery-open { position: relative; }
+.gallery-open:focus-visible { outline: none; }
+.gallery-open:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--amber);
+  pointer-events: none;
+}
 
 /* ---------- First-show photo upload box ---------- */
 
@@ -973,7 +984,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
 :root[data-theme="light"] { --float-shadow: 0 6px 14px rgba(17, 17, 17, 0.18); }
 
 @media (hover: hover) and (pointer: fine) {
-  .btn:hover:not(:disabled),
+  .btn:hover:not(:disabled):not([aria-disabled="true"]),
   .option-btn:hover:not(:disabled),
   .tab:hover:not([aria-selected="true"]):not([aria-pressed="true"]),
   .theme-toggle:hover,
@@ -995,7 +1006,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
   .track-spotify:hover { translate: 0 -2px; }
 
   /* Pressing pushes the element back down. */
-  .btn:active:not(:disabled),
+  .btn:active:not(:disabled):not([aria-disabled="true"]),
   .option-btn:active:not(:disabled),
   .tab:active,
   .theme-toggle:active,
