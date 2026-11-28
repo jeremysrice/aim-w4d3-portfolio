@@ -576,7 +576,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .track-note { color: var(--text-muted); font-size: 0.85em; }
 .track-spotify {
   margin-left: 0.35rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--text-muted);
@@ -649,7 +649,30 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .tour-table tbody tr:hover { background: var(--coal-800); }
 .tour-table .muted { color: var(--text-muted); font-size: 0.88rem; }
 
-.badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 99px; background: var(--amber-dim); color: var(--amber-text); margin-left: 0.4rem; }
+/* Phones: each table row becomes a stacked card, so nothing needs sideways scrolling. */
+@media (max-width: 600px) {
+  .tour-table-wrap { border: 0; border-radius: 0; overflow: visible; }
+  .tour-table, .tour-table tbody, .tour-table tr, .tour-table td { display: block; width: 100%; }
+  .tour-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tour-table tr { background: var(--coal-800); border: 1px solid var(--coal-600); border-radius: var(--radius); padding: 0.9rem 1rem; margin-bottom: 0.75rem; }
+  .tour-table tbody tr:hover { background: var(--coal-700); }
+  .tour-table th, .tour-table td { padding: 0; border: 0; }
+  .tour-table td:first-child { color: var(--amber-text); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem; }
+  .tour-table td strong { font-size: 1.05rem; }
+  .tour-table td[data-label] { margin-top: 0.6rem; }
+  .tour-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 0.1rem;
+  }
+}
+
+.badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 99px; background: var(--amber-dim); color: var(--amber-text); margin-left: 0.4rem; }
 
 /* Memory timeline */
 .two-col { display: grid; gap: 2rem; grid-template-columns: 1fr 1.4fr; align-items: start; }

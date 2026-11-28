@@ -829,15 +829,15 @@
       <tr>
         <td>${fmtMonth(t.start)}${t.end !== t.start ? " – " + fmtMonth(t.end) : ""}</td>
         <td><strong>${escapeHTML(t.name)}</strong></td>
-        <td class="muted">${escapeHTML(t.regions)}</td>
-        <td class="muted">${escapeHTML(t.notes)}</td>
+        <td class="muted" data-label="Regions">${escapeHTML(t.regions)}</td>
+        <td class="muted" data-label="Notes">${escapeHTML(t.notes)}</td>
       </tr>`).join("");
 
     $("#landmark-rows").innerHTML = LANDMARKS.map((l) => `
       <tr>
         <td>${fmtDate(l.date)}</td>
         <td><strong>${escapeHTML(l.venue)}</strong></td>
-        <td class="muted">${escapeHTML(l.why)}</td>
+        <td class="muted" data-label="Why it matters">${escapeHTML(l.why)}</td>
       </tr>`).join("");
 
     // Visitor's local date as YYYY-MM-DD (toISOString would use UTC and roll over to "tomorrow" in the evening).
@@ -846,7 +846,7 @@
     const future = UPCOMING.filter((u) => u.date >= today).sort((a, b) => a.date.localeCompare(b.date));
     $("#upcoming-list").innerHTML = future.length
       ? `<div class="tour-table-wrap"><table class="tour-table"><thead><tr><th>Date</th><th>Venue</th><th>Tour</th></tr></thead><tbody>
-          ${future.map((u) => `<tr><td>${fmtDate(u.date)}<span class="badge">Upcoming</span></td><td><strong>${escapeHTML(u.venue)}</strong></td><td class="muted">${escapeHTML(u.tour || "")}</td></tr>`).join("")}
+          ${future.map((u) => `<tr><td>${fmtDate(u.date)}<span class="badge">Upcoming</span></td><td><strong>${escapeHTML(u.venue)}</strong></td><td class="muted" data-label="Tour">${escapeHTML(u.tour || "")}</td></tr>`).join("")}
          </tbody></table></div>`
       : `<p class="empty-state">No upcoming dates are listed right now. For announcements, check <a href="https://rollingstones.com/tour/" target="_blank" rel="noopener">the official tour page</a>.</p>`;
 
