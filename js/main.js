@@ -976,7 +976,7 @@
       prompt.hidden = Boolean(file);
       clearBtn.hidden = !file;
       photoBox.classList.toggle("has-file", Boolean(file));
-      if (file) { preview.src = previewUrl; preview.alt = `Selected photo: ${file.name}`; }
+      if (file) { preview.src = previewUrl; preview.alt = `Preview of the photo you chose for your first-show memory (${file.name})`; }
       else preview.removeAttribute("src");
     }
 
@@ -1049,11 +1049,11 @@
       }
       photoGrid.innerHTML = items.map(({ r, m }) => {
         const urls = urlsFor(r);
-        const alt = `${m.name}'s first show: ${m.city}, ${m.year}`;
+        const alt = `Photo from ${m.name}'s first show: ${m.city}, ${m.year}`;
         return `
           <figure class="photo-item">
             <button class="photo-thumb" type="button" data-photo-id="${escapeHTML(m.id)}" aria-label="View full size: ${escapeHTML(alt)}">
-              <img src="${urls.thumb}" alt="" loading="lazy" width="${r.thumbW}" height="${r.thumbH}">
+              <img src="${urls.thumb}" alt="${escapeHTML(alt)}" loading="lazy" width="${r.thumbW}" height="${r.thumbH}">
               <span class="photo-expand" aria-hidden="true">⤢</span>
             </button>
             <figcaption><strong>${escapeHTML(m.name)}</strong> · ${m.year}<br><span>${escapeHTML(m.city)}</span></figcaption>
@@ -1088,7 +1088,7 @@
         setStatus(status, `The photo for ${m.name}'s memory isn't available in this browser.`, "error");
         return;
       }
-      openLightbox(urls.full, `${m.name}'s first show: ${m.city}, ${m.year}`, btn);
+      openLightbox(urls.full, `Photo from ${m.name}'s first show: ${m.city}, ${m.year}`, btn);
     });
 
     timeline.addEventListener("click", (e) => {
