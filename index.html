@@ -11,6 +11,7 @@
   <script src="js/main.js"></script>
 </head>
 <body data-page="home">
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
     <nav class="nav container" aria-label="Main">
@@ -27,7 +28,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main" tabindex="-1">
     <section class="hero">
       <img class="hero-logo" src="images/tongue-logo.svg" alt="" width="420" height="483">
       <div class="container hero-inner">
@@ -49,7 +50,7 @@
           <p>Along the way, the Stones went from raw R&amp;B covers to the run of records many fans count as the best in rock: <em>Beggars Banquet</em>, <em>Let It Bleed</em>, <em>Sticky Fingers</em> and <em>Exile on Main St.</em> They outlasted the British Invasion, punk and disco, and still release new music. <em>Hackney Diamonds</em> came out in 2023.</p>
           <p>This site is put together by fans for fans. Browse the discography, play the song-guessing game, add your first-show story to the memories wall, or test yourself below.</p>
         </div>
-        <aside class="card" aria-label="Quick facts">
+        <div class="card">
           <h3>Quick facts</h3>
           <ul class="fact-list">
             <li><span>Formed</span><strong>1962</strong></li>
@@ -58,7 +59,7 @@
             <li><span>Biggest crowd</span><strong>~1.5M</strong></li>
             <li><span>Hometown</span><strong>London</strong></li>
           </ul>
-        </aside>
+        </div>
       </div>
 
       <div class="container">
@@ -78,13 +79,14 @@
     <section class="section section--alt" id="trivia">
       <div class="container">
         <h2 class="section-title">Hard <span>Trivia</span> Challenge</h2>
-        <p class="section-lead">Ten questions, 20 seconds each. Every right answer scores 100 points, plus a bonus for how fast you answered. Post your score to the leaderboard.</p>
+        <p class="section-lead">Ten questions, 20 seconds each. Every right answer scores 100 points, plus a bonus for how fast you answered. Prefer to take your time? Turn on relaxed mode to play without a timer. Post your score to the leaderboard.</p>
 
         <div class="trivia-layout">
-          <div class="card" id="quiz" aria-live="polite">
+          <div class="card" id="quiz">
             <div id="quiz-start">
               <h3>Think you know the Stones?</h3>
               <p class="form-note">The questions are drawn at random from a larger pool, so no two runs are the same.</p>
+              <label class="check-label"><input type="checkbox" id="quiz-relaxed"> Relaxed mode: no timer (and no speed bonus)</label>
               <p><button class="btn" type="button" id="quiz-start-btn">Start challenge</button></p>
             </div>
 
@@ -92,12 +94,13 @@
               <div class="quiz-meta">
                 <span>Question <strong id="quiz-num">1</strong> / <span id="quiz-total">10</span></span>
                 <span>Score <strong id="quiz-score">0</strong></span>
-                <span><strong id="quiz-time">20</strong>s</span>
+                <!-- The countdown is deliberately not a live region, so screen readers don't read it every second. -->
+                <span id="quiz-clock"><strong id="quiz-time">20</strong>s</span>
               </div>
-              <div class="timer-bar"><span id="quiz-timer-bar"></span></div>
-              <p class="quiz-question" id="quiz-question"></p>
+              <div class="timer-bar" id="quiz-timer"><span id="quiz-timer-bar"></span></div>
+              <p class="quiz-question" id="quiz-question" tabindex="-1"></p>
               <div class="options" id="quiz-options"></div>
-              <p class="quiz-feedback" id="quiz-feedback"></p>
+              <p class="quiz-feedback" id="quiz-feedback" aria-live="polite"></p>
               <button class="btn" type="button" id="quiz-next" hidden>Next question</button>
             </div>
 
@@ -118,11 +121,11 @@
             </div>
           </div>
 
-          <aside class="card">
+          <div class="card">
             <h3>Leaderboard</h3>
             <ol class="leaderboard" id="leaderboard"></ol>
             <p class="form-note" style="margin-top:1rem">Top 10 scores are saved in this browser.</p>
-          </aside>
+          </div>
         </div>
       </div>
     </section>

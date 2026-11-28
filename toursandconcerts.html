@@ -11,6 +11,7 @@
   <script src="js/main.js"></script>
 </head>
 <body data-page="tours">
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
     <nav class="nav container" aria-label="Main">
@@ -27,7 +28,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main" tabindex="-1">
     <section class="page-hero">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -109,9 +110,10 @@
               <textarea id="mem-story" maxlength="800" required placeholder="The lights went down, then that opening riff..."></textarea>
             </div>
             <div>
-              <label for="mem-photo">Photo from the show (optional)</label>
+              <!-- Only the upload box is a <label>, so the field has exactly one; its name comes from this text. -->
+              <p class="field-label" id="mem-photo-label">Photo from the show (optional)</p>
               <label class="upload-box" for="mem-photo" id="mem-photo-box">
-                <input type="file" id="mem-photo" accept="image/*" aria-describedby="mem-photo-hint">
+                <input type="file" id="mem-photo" accept="image/*" aria-labelledby="mem-photo-label" aria-describedby="mem-photo-hint">
                 <img class="upload-preview" id="mem-photo-preview" alt="" hidden>
                 <span class="upload-prompt" id="mem-photo-prompt">
                   <span class="upload-icon" aria-hidden="true">📷</span>

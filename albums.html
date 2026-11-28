@@ -11,6 +11,7 @@
   <script src="js/main.js"></script>
 </head>
 <body data-page="albums">
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
     <nav class="nav container" aria-label="Main">
@@ -27,7 +28,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main" tabindex="-1">
     <section class="page-hero">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -52,15 +53,15 @@
         <h2 class="section-title">Name That <span>Song</span></h2>
         <p class="section-lead">You get a one-line clue and four choices. After you answer, the song plays in an official embedded YouTube player, starting at a short clip.</p>
 
-        <div class="card game-card" aria-live="polite">
+        <div class="card game-card">
           <div class="quiz-meta">
             <span>Round <strong id="game-round">1</strong> / <span id="game-total">10</span></span>
             <span>Score <strong id="game-score">0</strong></span>
             <span>Streak <strong id="game-streak">0</strong></span>
           </div>
-          <p class="clue" id="game-clue">Press start to get your first clue.</p>
+          <p class="clue" id="game-clue" tabindex="-1">Press start to get your first clue.</p>
           <div class="options game-options" id="game-options"></div>
-          <p class="quiz-feedback" id="game-feedback"></p>
+          <p class="quiz-feedback" id="game-feedback" aria-live="polite"></p>
           <div class="player-wrap" id="game-player" hidden></div>
           <div class="game-actions">
             <button class="btn" type="button" id="game-start">Start game</button>

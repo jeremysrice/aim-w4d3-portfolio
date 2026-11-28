@@ -232,6 +232,7 @@
       start: $("#quiz-start"), play: $("#quiz-play"), end: $("#quiz-end"),
       num: $("#quiz-num"), total: $("#quiz-total"), score: $("#quiz-score"),
       time: $("#quiz-time"), bar: $("#quiz-timer-bar"),
+      relaxed: $("#quiz-relaxed"), clock: $("#quiz-clock"), timerWrap: $("#quiz-timer"),
       question: $("#quiz-question"), options: $("#quiz-options"),
       feedback: $("#quiz-feedback"), next: $("#quiz-next"),
       final: $("#quiz-final"), summary: $("#quiz-summary"),
@@ -240,6 +241,7 @@
     };
 
     let questions = [], index = 0, score = 0, correct = 0, timeLeft = 0, timer = null, saved = false;
+    let relaxed = false; // relaxed mode: no time limit and no speed bonus (WCAG 2.2.1 Timing Adjustable)
 
     function renderLeaderboard() {
       const scores = store.get(LB_KEY, []);
@@ -248,7 +250,7 @@
         return;
       }
       els.lb.innerHTML = scores.map((s) => `
-        <li><span>${escapeHTML(s.name)}<span class="date">${escapeHTML(s.correct)}/${QUIZ_LEN} correct · ${new Date(s.date).toLocaleDateString()}</span></span>
+        <li><span>${escapeHTML(s.name)}<span class="date">${escapeHTML(s.correct)}/${QUIZ_LEN} correct${s.relaxed ? " · relaxed" : ""} · ${new Date(s.date).toLocaleDateString()}</span></span>
         <span class="score">${s.score}</span></li>`).join("");
     }
 
@@ -256,6 +258,9 @@
       questions = shuffle(TRIVIA).slice(0, QUIZ_LEN);
       index = 0; score = 0; correct = 0; saved = false;
       els.total.textContent = QUIZ_LEN;
+      relaxed = els.relaxed.checked;
+      els.clock.hidden = relaxed;
+      els.timerWrap.hidden = relaxed;
       els.start.hidden = true; els.end.hidden = true; els.play.hidden = false;
       setStatus(els.status, "");
       showQuestion();
@@ -278,13 +283,18 @@
         els.options.appendChild(b);
       });
       timeLeft = QUIZ_TIME;
-      tick();
       clearInterval(timer);
-      timer = setInterval(() => {
-        timeLeft -= 0.25;
+      if (!relaxed) {
         tick();
-        if (timeLeft <= 0) answer(null);
-      }, 250);
+        timer = setInterval(() => {
+          timeLeft -= 0.25;
+          tick();
+          if (timeLeft <= 0) answer(null);
+        }, 250);
+      }
+      // The button that was just pressed (Start or Next) is now hidden, so move focus to the
+      // question. Screen readers read it out, and the answers are the next Tab stops.
+      els.question.focus();
     }
 
     function tick() {
@@ -302,10 +312,10 @@
         else if (b.textContent === choice) b.classList.add("is-wrong");
       });
       if (right) {
-        const bonus = Math.round(Math.max(0, timeLeft) * 5);
+        const bonus = relaxed ? 0 : Math.round(Math.max(0, timeLeft) * 5);
         score += 100 + bonus;
         correct++;
-        els.feedback.textContent = `Correct! +100, plus a ${bonus}-point speed bonus.`;
+        els.feedback.textContent = relaxed ? "Correct! +100." : `Correct! +100, plus a ${bonus}-point speed bonus.`;
       } else {
         els.feedback.textContent = choice === null ? `Time's up. The answer was ${item.a}.` : `Not quite. The answer was ${item.a}.`;
       }
@@ -336,7 +346,7 @@
       if (saved) { setStatus(els.status, "This score is already saved.", "error"); return; }
       const name = els.name.value.trim();
       if (!name) { setStatus(els.status, "Please enter a name.", "error"); return; }
-      const entry = { name, score, correct, date: Date.now() };
+      const entry = { name, score, correct, relaxed, date: Date.now() };
       const scores = store.get(LB_KEY, []);
       scores.push(entry);
       scores.sort((a, b) => b.score - a.score);
@@ -702,6 +712,9 @@
         b.addEventListener("click", () => answer(s, song));
         els.options.appendChild(b);
       });
+      // Start/Next is now hidden, so move focus to the clue: screen readers read it out,
+      // and the answers are the next Tab stops.
+      clueEl.focus();
     }
 
     function answer(choice, song) {
@@ -744,6 +757,9 @@
         }
       }
       els.next.hidden = false;
+      // The answer buttons are now disabled (including the one just pressed), so focus would
+      // be lost. Move it to Next; the player is one Shift+Tab back.
+      els.next.focus();
     }
 
     els.start.addEventListener("click", start);
@@ -1329,8 +1345,9 @@
 
     function item(g, withActions) {
       // Image posts show the picture; text-only posts show the caption as a quote card instead.
+      const alt = `${escapeHTML(g.category)} by ${escapeHTML(g.name)}${g.caption ? ": " + escapeHTML(g.caption) : ""}`;
       const media = g.img
-        ? `<img src="${g.img}" alt="${escapeHTML(g.category)} by ${escapeHTML(g.name)}${g.caption ? ": " + escapeHTML(g.caption) : ""}" tabindex="0" title="View larger" loading="lazy">`
+        ? `<button class="gallery-open" type="button" aria-label="View larger: ${alt}" title="View larger"><img src="${g.img}" alt="${alt}" loading="lazy"></button>`
         : `<blockquote class="gallery-text">${escapeHTML(g.caption || "")}</blockquote>`;
       return `
         <figure class="gallery-item${g.img ? "" : " gallery-item--text"}">
@@ -1476,14 +1493,13 @@
       render();
     });
 
-    // Gallery images open in the shared lightbox with a click, Enter or Space.
+    // Gallery images open in the shared lightbox. They sit inside real buttons,
+    // so Enter and Space work automatically, and focus returns to the button on close.
     document.addEventListener("click", (e) => {
-      const img = e.target.closest(".gallery-item img");
-      if (img) openLightbox(img.src, img.alt, img);
-    });
-    document.addEventListener("keydown", (e) => {
-      const img = e.target.closest && e.target.closest(".gallery-item img");
-      if (img && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openLightbox(img.src, img.alt, img); }
+      const btn = e.target.closest(".gallery-open");
+      if (!btn) return;
+      const img = btn.querySelector("img");
+      openLightbox(img.src, img.alt, btn);
     });
 
     render();

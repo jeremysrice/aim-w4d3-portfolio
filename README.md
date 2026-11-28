@@ -8,7 +8,7 @@ An unofficial fan site for The Rolling Stones, built with plain HTML, CSS and Ja
 
 | Page | What's on it | Interactive feature |
 |---|---|---|
-| [`index.html`](index.html) | Hero, short band history, quick facts and line-up | **Hard trivia challenge:** 10 random questions from a pool of 16, a 20-second timer, a speed bonus and a top-10 leaderboard |
+| [`index.html`](index.html) | Hero, short band history, quick facts and line-up | **Hard trivia challenge:** 10 random questions from a pool of 16, a 20-second timer (or an untimed relaxed mode), a speed bonus and a top-10 leaderboard |
 | [`albums.html`](albums.html) | All 24 UK studio albums (1964–2023) with cover art, key tracks, descriptions and links, plus search and an era filter | **Name That Song:** guess the song from a one-line clue, then hear it in an official YouTube embed. Includes streak bonuses and a saved best score. |
 | [`toursandconcerts.html`](toursandconcerts.html) | 31 major tours, 11 landmark shows and an upcoming-dates tab | **First-show memories wall:** a timeline grouped by decade with likes and an optional photo upload that is automatically screened for nudity<br>**First Show Photos:** expandable thumbnails of those photos<br>**Fan gallery:** photo, fan-art and tattoo posts (the image is optional; text-only posts need a caption). Images are automatically screened for nudity, and every post is held in a moderation queue. |
 | [`404.html`](404.html) | Custom "page not found" page | Suggests the page you probably meant |
@@ -19,7 +19,7 @@ An unofficial fan site for The Rolling Stones, built with plain HTML, CSS and Ja
 - **Dark/light theme toggle:** dark is the default. Light mode is high-contrast gray, blue and the tongue-logo red. The choice is saved in `localStorage`, stays the same across pages and syncs between open tabs.
 - **Page transitions:** uses the browser's built-in cross-page View Transitions where supported, with a JavaScript fade fallback elsewhere.
 - **Breadcrumbs, back-to-top button and footer links:** the footer links are generated automatically from the header nav.
-- **Accessibility:** contrast-checked colours, keyboard-operable tabs and gallery, visible focus styles, ARIA labels and support for `prefers-reduced-motion`.
+- **Accessibility:** audited against WCAG 2.2 AA with axe-core (no failures in either theme). Includes a skip link, contrast-checked colours, keyboard-operable tabs, games and gallery, focus that follows the games, visible focus styles, 24px minimum tap targets, an untimed trivia mode, ARIA labels and support for `prefers-reduced-motion`.
 
 ## Project structure
 

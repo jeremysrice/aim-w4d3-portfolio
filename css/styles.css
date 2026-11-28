@@ -50,9 +50,11 @@
   --coal-500: #6e6e6e;           /* input and control outlines */
   --text: #111111;
   --text-muted: #363636;
-  --amber: #ee1c25;              /* accent: tongue-logo red (fills, headings, borders, glows) */
+  /* Accent: the tongue-logo red (#ee1c25), a hair darker so white button text meets the
+     4.5:1 contrast minimum (4.72:1 here; the exact logo red is 4.34:1). */
+  --amber: #e31b23;              /* fills, headings, borders, glows */
   --amber-soft: #c8101e;         /* accent hover */
-  --amber-dim: rgba(238, 28, 37, 0.1);
+  --amber-dim: rgba(227, 27, 35, 0.1);
   --amber-text: #b0001e;         /* small red text */
   --danger: #8f0a00;
   --success: #17663a;
@@ -108,6 +110,25 @@ h1, h2, h3 {
   outline: 2px solid var(--amber);
   outline-offset: 2px;
 }
+/* Elements that only receive focus from code (to tell screen readers where you are) don't need a ring. */
+[tabindex="-1"]:focus { outline: none; }
+
+/* "Skip to content": hidden until a keyboard user tabs to it. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 300;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: var(--amber);
+  color: var(--on-amber);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus { top: 0.75rem; }
+.skip-link:hover, .skip-link:focus { color: var(--on-amber); } /* beat the general a:hover colour */
 
 .container {
   width: min(100% - 2rem, var(--max));
@@ -339,7 +360,16 @@ input[type="file"]::file-selector-button {
 }
 input[type="file"]:hover::file-selector-button { border-color: var(--amber); background: var(--amber-dim); }
 textarea { min-height: 110px; resize: vertical; }
-input:focus, select:focus, textarea:focus { border-color: var(--amber); outline: none; }
+/* Focused fields keep the site-wide focus ring (from :focus-visible) as well as a red/amber border. */
+input:focus, select:focus, textarea:focus { border-color: var(--amber); }
+input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { outline: 2px solid var(--amber); outline-offset: 1px; }
+
+/* A text label for a field whose real <label> is something else (e.g. the photo upload box). */
+.field-label { display: block; font-weight: 600; font-size: 0.92rem; margin: 0 0 0.35rem; }
+
+/* Checkbox with its label text beside it. */
+.check-label { display: flex; align-items: center; gap: 0.6rem; font-weight: 500; cursor: pointer; margin: 0 0 1rem; }
+.check-label input { width: 1.15rem; height: 1.15rem; margin: 0; accent-color: var(--amber); cursor: pointer; }
 
 .form-note { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
 .form-status { min-height: 1.4em; font-size: 0.92rem; margin: 0; }
@@ -564,7 +594,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .album-body .album-mb:empty { display: none; }
 .album-body h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--amber-text); margin: 0 0 0.4rem; }
 .track-list { margin: 0 0 1.25rem; padding-left: 1.2rem; font-size: 0.92rem; }
-.track-list li { margin-bottom: 0.3rem; }
+/* Tall enough lines that the 24px+ Spotify pill never overlaps a song title that wraps onto two lines. */
+.track-list li { margin-bottom: 0.3rem; line-height: 1.9; }
 .track-link {
   color: var(--text);
   text-decoration: none;
@@ -581,7 +612,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
   letter-spacing: 0.04em;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 0.05rem 0.4rem;
+  padding: 0.15rem 0.5rem; /* at least 24px tall: the minimum tap-target size */
   border: 1px solid var(--coal-500);
   border-radius: 99px;
   white-space: nowrap;
@@ -696,8 +727,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 /* Fan gallery */
 .gallery-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .gallery-item { margin: 0; background: var(--coal-700); border: 1px solid var(--coal-600); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: translate 0.2s, box-shadow 0.2s; }
-.gallery-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; cursor: zoom-in; transition: filter 0.25s; }
-.gallery-item img:hover { filter: brightness(1.12) saturate(1.1); }
+/* Image posts: the picture sits inside a button so screen readers know it opens a larger view. */
+.gallery-open { display: block; width: 100%; padding: 0; border: 0; background: #000; cursor: zoom-in; }
+.gallery-item img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; transition: filter 0.25s; }
+.gallery-open:hover img { filter: brightness(1.12) saturate(1.1); }
 .gallery-item figcaption { padding: 0.8rem 1rem; font-size: 0.9rem; }
 .gallery-item .cat { color: var(--amber-text); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
 .gallery-item .mod-actions { display: flex; gap: 0.5rem; padding: 0 1rem 1rem; }
@@ -802,7 +835,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 .footer-nav a[aria-current="page"] { color: var(--amber-text); border-bottom-color: var(--amber); }
 
 /* Gallery images open in the lightbox with a click, Enter or Space */
-.gallery-item img:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; }
+.gallery-open:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; }
 
 /* ---------- First-show photo upload box ---------- */
 
@@ -939,7 +972,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--amber); outline:
 
   /* Kept in separate rules: if a browser doesn't support a selector, it drops the whole rule. */
   input[type="file"]:hover::file-selector-button { translate: 0 -2px; box-shadow: var(--float-shadow); }
-  .gallery-item:has(> img:hover) { translate: 0 -3px; box-shadow: var(--float-shadow); }
+  .gallery-item:has(> .gallery-open:hover) { translate: 0 -3px; box-shadow: var(--float-shadow); }
 
   /* Already has a large shadow, so it only lifts. */
   .to-top.is-visible:hover { translate: 0 -3px; }
